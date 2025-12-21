@@ -14,11 +14,16 @@
   'depends': ['base'],
   'data': [
     # Aquí van los archivos xml
+    # ORDEN IMPORTANTE: Seguridad primero, luego vistas
+    # Seguridad
+    'security/ir.model.access.csv',
+    # Vistas
+    'views/menus_views.xml',
   ],
   'demo': [
     # Datos de demostración (Opcional)
   ],
-  'installable': True,
-  'application': False,
-  'auto_install': False,
+  'installable': True, # Si puede instalarse
+  'application': True, # Si es una aplicación
+  'auto_install': False, # Si se instala automáticamente
 }

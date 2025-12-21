@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!--Modelo de Seguridad para permisos-->
+  <record id="model_hola_mundo" model="ir.model">
+    <field name="name">Hola Mundo</field>
+    <field name="model">hola.mundo</field>
+    <field name="info">Mi primer módulo Odoo</field>
+  </record>
+
+</odoo>
