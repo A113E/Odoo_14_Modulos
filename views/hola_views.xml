@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!--VISTA TREE (Lista/Árbol)-->
+  <record id="view_hola_mundo_tree" model="ir.ui.view">
+    <field name="name">hola.mundo.tree</field>
+    <field name="model">hola.mundo</field>
+    <field name="arch" type="xml">
+      <tree>
+        <!--Encabezados
+        de las columnas-->
+        <field name="nombre" string="Nombre" />
+        <field name="edad" string="Edad" />
+        <field name="altura" string="Altura (m)" />
+        <field name="estado" string="Estado" />
+        <field name="esta_activo" string="Está activo" />
+        <field name="fecha_registro" string="Fecha de registro" />
+      </tree>
+    </field>
+  </record>
+
+  <!--VISTA
+  FORM (Formulario)-->
+  <record id="view_hola_mundo_form" model="ir.ui.view">
+    <field name="name">hola.mundo.form</field>
+    <field name="model">hola.mundo</field>
+    <field name="arch" type="xml">
+      <form>
+        <!--Encabezado
+        del formulario-->
+        <header>
+          <!--Boton
+          para volver a la lista-->
+          <button name="%(action_hola_mundo)d"
+            string="Volver a la lista"
+            type="action"
+            class="btn-secondary" />
+          <!--Boton
+          para guardar el registro-->
+          <button name="action_guardar"
+            string="Guardar"
+            type="object"
+            class="btn-primary" />
+        </header>
+        <!--Cuerpo
+        del Formulario-->
+        <sheet>
+          <!--Información
+          básica-->
+          <group>
+            <group>
+              <field name="nombre" string="Nombre completo" />
+              <field name="edad" />
+              <field name="altura" />
+            </group>
+            <group>
+              <field name="fecha_nacimiento" />
+              <field name="anio_nacimiento" readonly="1" />
+              <field name="fecha_registro" />
+            </group>
+          </group>
+          <!--Separador-->
+          <separator string="Detalles y estado" />
+          <!--Estado
+          y descripción-->
+          <group>
+            <field name="esta_activo" />
+            <field name="estado" widget="radio" />
+          </group>
+          <group>
+            <field name="descripcion" placeholder="Escribe una descripción aquí..." nolabel="1" />
+          </group>
+          <footer>
+            <!--Botón
+            para guardar cambios-->
+            <button name="action_guardar"
+              string="Guardar cambios"
+              type="object"
+              class="btn-primary" />
+            <!--Boton
+            para cancelar registro-->
+            <button name="%(action_hola_mundo)d"
+              string="Cancelar"
+              type="action"
+              class="btn-secondary" />
+          </footer>
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!--ACCIÓN
+  QUE USA LAS VISTAS PERSONALIZADAS-->
+  <record id="action_hola_mundo" model="ir.actions.act_window">
+    <field name="name">Hola Mundo</field>
+    <field name="res_model">hola.mundo</field>
+    <field name="view_mode">tree,form</field>
+    <!--Especificamos
+    las vistas-->
+    <field name="view_id" ref="view_hola_mundo_tree" />
+    <!--Definimos
+    el orden por defecto-->
+    <field name="domain">[]</field>
+    <field name="context">{'search_default_name': 1}</field>
+    <!--Ordenar
+    por fecha de registro descendente-->
+    <field name="help" type="html">
+      <p class="o_view_nocontent_smiling_face">
+        !Mi primer Módulo!
+      </p>
+      <p>
+        Puedes crear nuevos registros con el botón crear
+      </p>
+    </field>
+  </record>
+
+</odoo>

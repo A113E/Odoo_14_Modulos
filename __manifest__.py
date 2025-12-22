@@ -2,7 +2,7 @@
 
 {
   'name': "Hola Mundo",
-  'version': "14.0.1.0.0",
+  'version': "14.0.1.0.1",
   'author': "A113E",
   'website': "",
   'category': "Tools",
@@ -19,6 +19,7 @@
     'security/ir.model.access.csv',
     # Vistas
     'views/menus_views.xml',
+    'views/hola_views.xml',
   ],
   'demo': [
     # Datos de demostración (Opcional)
