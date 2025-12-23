@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+  <!-- noupdate="1" significa que no se actualiza al reinstalar -->
+
+  <record id="producto_demo_1" model="gestion.producto">
+    <field name="codigo">PROD-00001</field>
+    <field name="name">Laptop Dell XPS 13</field>
+    <field name="descripcion">Laptop ultrabook de 13 pulgadas, 16GB RAM, 512GB SSD</field>
+    <field name="cantidad_stock">5</field>
+    <field name="precio_compra">1200.00</field>
+    <field name="precio_venta">1500.00</field>
+    <field name="peso_kg">1.2</field>
+    <field name="vida_util_meses">36</field>
+    <field name="esta_activo">True</field>
+  </record>
+
+  <record id="producto_demo_2" model="gestion.producto">
+    <field name="codigo">PROD-00002</field>
+    <field name="name">Mouse Inalámbrico Logitech</field>
+    <field name="descripcion">Mouse ergonómico inalámbrico, batería de 12 meses</field>
+    <field name="cantidad_stock">50</field>
+    <field name="precio_compra">25.00</field>
+    <field name="precio_venta">40.00</field>
+    <field name="peso_kg">0.150</field>
+    <field name="vida_util_meses">24</field>
+    <field name="esta_activo">True</field>
+  </record>
+
+  <record id="producto_demo_3" model="gestion.producto">
+    <field name="codigo">PROD-00003</field>
+    <field name="name">Teclado Mecánico Redragon</field>
+    <field name="descripcion">Teclado mecánico gaming con retroiluminación RGB</field>
+    <field name="cantidad_stock">15</field>
+    <field name="precio_compra">60.00</field>
+    <field name="precio_venta">90.00</field>
+    <field name="peso_kg">1.050</field>
+    <field name="vida_util_meses">30</field>
+    <field name="esta_activo">True</field>
+  </record>
+</odoo>

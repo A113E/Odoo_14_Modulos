@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!--Vista Tree: Arbol-->
+  <record id="view_producto_tree" model="ir.ui.view">
+    <field name="name">gestion.producto.tree</field>
+    <field name="model">gestion.producto</field>
+    <field name="arch" type="xml">
+      <tree>
+        <field name="codigo" string="SKU" />
+        <field name="name" string="Nombre" />
+        <field name="cantidad_stock" string="Cantidad en stock" />
+        <field name="precio_venta" string="Precio de venta" />
+        <field name="esta_activo" string="Activo" />
+      </tree>
+    </field>
+  </record>
+
+  <!--Vista
+  Form: Formulario-->
+  <record id="view_producto_form" model="ir.ui.view">
+    <field name="name">gestion.producto.form</field>
+    <field name="model">gestion.producto</field>
+    <field name="arch" type="xml">
+      <form>
+        <!--Encabezado
+        del formulario-->
+        <header>
+          <!--Botones
+          de activar y desactivar dinamicos-->
+          <button
+            name="action_activar"
+            string="Activar"
+            type="object"
+            class="btn-primary"
+            attrs="{'invisible': [('esta_activo', '=', True)]}" />
+          <button
+            name="action_desactivar"
+            string="Desactivar"
+            type="object"
+            class="btn-secondary"
+            attrs="{'invisible': [('esta_activo', '=', False)]}" />
+        </header>
+        <!--Cuerpo
+        del Formulario-->
+        <sheet>
+          <group>
+            <group>
+              <field name="codigo" string="Codigo SKU" />
+              <field name="name" string="Nombre del producto" />
+              <field name="esta_activo" string="Activo" />
+            </group>
+            <group>
+              <field name="cantidad_stock" string="Cantidad en stock" />
+              <field name="vida_util_meses" string="Vida util en meses" />
+            </group>
+          </group>
+
+          <separator string="Información de precios" />
+
+          <group>
+            <group>
+              <field name="precio_compra" string="Precio de compra" />
+            </group>
+            <group>
+              <field name="precio_venta" string="Precio de venta" />
+            </group>
+          </group>
+
+          <separator string="Detalles especificos" />
+
+          <group>
+            <field name="peso_kg" string="Peso en kgs" />
+            <field name="descripcion" string="Descripcion del producto" />
+          </group>
+
+          <footer>
+            <field name="fecha_creacion" string="Fecha de creacion" readonly="1" />
+          </footer>
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!--Acción
+  de Ventana-->
+  <record id="action_producto" model="ir.actions.act_window">
+    <field name="name">Productos</field>
+    <field name="res_model">gestion.producto</field>
+    <field name="view_mode">tree,form</field>
+    <field name="help" type="html">
+      <p class="o_view_nocontent_smiling_face">
+        No hay productos creados aún
+      </p>
+      <p>
+        Cree su primer producto en "Crear"
+      </p>
+    </field>
+  </record>
+
+</odoo>

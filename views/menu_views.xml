@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!--Menu principal-->
+  <menuitem
+    id="menu_gestion_productos_root"
+    name="Gestión de Productos"
+    sequence="100"
+    web_icon="gestion_productos,static/description/icon.png" />
+
+  <!--Submenu-->
+  <menuitem
+    id="menu_productos"
+    name="Productos"
+    parent="menu_gestion_productos_root"
+    action="action_producto"
+    sequence="10" />
+
+</odoo>
