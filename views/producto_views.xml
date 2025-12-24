@@ -143,7 +143,7 @@
             <group>
               <field name="es_fragil" string="¿Es fragil?" />
               <field name="instrucciones_fragilidad" string="Instrucciones para fragilidad"
-                attrs="{'invisible': [('es_fragil', '=', 'False')], 'required': [('es_fragil', '=', 'True')]}"
+                attrs="{'invisible': [('es_fragil', '=', False)], 'required': [('es_fragil', '=', True)]}"
                 placeholder="Ej: Manejar con cuidado, no apilar, etc." />
             </group>
             <!--Si
@@ -151,7 +151,7 @@
             <group>
               <field name="requiere_refrigeracion" string="¿Requiere refrigeracion?" />
               <field name="temperatura_refrigeracion" string="Temperatura Cº"
-                attrs="{'invisible': [('requiere_refrigeracion', '=', 'False')], 'required': [('requiere_refrigeracion', '=', 'True')]}"
+                attrs="{'invisible': [('requiere_refrigeracion', '=', False)], 'required': [('requiere_refrigeracion', '=', True)]}"
               />
             </group>
             <!--Si
@@ -159,7 +159,7 @@
             <group>
               <field name="tiene_garantia" string="¿Tiene Garantia?" />
               <field name="duracion_garantia_mes" string="Duración de la garantía (meses)"
-                attrs="{'invisible': [('tiene_garantia', '=', 'False')], 'required': [('tiene_garantia', '=', 'True')]}"
+                attrs="{'invisible': [('tiene_garantia', '=', False)], 'required': [('tiene_garantia', '=', True)]}"
               />
             </group>
           </group>
@@ -183,12 +183,57 @@
     </field>
   </record>
 
+  <!--Vista
+  Search con Filtros de estado-->
+  <record id="view_producto_search" model="ir.ui.view">
+    <field name="name">gestion.producto.search</field>
+    <field name="model">gestion.producto</field>
+    <field name="arch" type="xml">
+      <search>
+        <!--Busqueda
+        rapida-->
+        <field name="name" string="Nombre" />
+        <field name="codigo" string="Codigo SKU" />
+
+        <!--Filtros
+        predefinidos-->
+        <filter name="borrador" string="Borrador" domain="[('estado', '=', 'borrador')]" />
+        <filter name="en_revision" string="En revision" domain="[('estado', '=', 'en_revision')]" />
+        <filter name="aprobados" string="Aprobados" domain="[('estado', '=', 'aprobado')]" />
+        <filter name="rechazados" string="Rechazados" domain="[('estado', '=', 'rechazado')]" />
+        <filter name="archivados" string="Archivados" domain="[('estado', '=', 'archivado')]" />
+
+        <!--Filtros
+        booleanos-->
+        <filter name="fragiles" string="Fragiles" domain="[('es_fragil', '=', True)]" />
+        <filter name="refrigerados" string="Refrigerados"
+          domain="[('requiere_refrigeracion', '=', True)]" />
+        <filter name="con_garantia" string="Con Garantia" domain="[('tiene_garantia', '=', True)]" />
+
+        <!--Filtro
+        grupal (Por estado)-->
+        <filter name="group_estado" string="Agrupar por estado" context="{'group_by': 'estado'}" />
+
+        <separator />
+
+        <!--Filtros
+        combinados-->
+        <filter name="activos_aprobados" string="Activos y Aprobados"
+          domain="[('esta_activo', '=', True), ('estado', '=', 'aprobado')]" />
+        <filter name="sin_stock" string="Sin Stock"
+          domain="[('cantidad_stock','=',0)]" />
+      </search>
+    </field>
+  </record>
+
   <!--Acción
   de Ventana-->
   <record id="action_producto" model="ir.actions.act_window">
     <field name="name">Productos</field>
     <field name="res_model">gestion.producto</field>
     <field name="view_mode">tree,form</field>
+    <field name="search_view_id" ref="view_producto_search" />
+    <field name="context">{'search_default_activos_aprobados': 1}</field>
     <field name="help" type="html">
       <p class="o_view_nocontent_smiling_face">
         No hay productos creados aún
