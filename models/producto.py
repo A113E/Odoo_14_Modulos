@@ -93,6 +93,95 @@ class Producto(models.Model):
     help='Indica si el producto está activo en el catalogo'
   )
 
+  es_fragil = fields.Boolean(
+    string='Es fragil',
+    default=False,
+    help='El producto requiere manejo especial por fragilidad'
+  )
+
+  requiere_refrigeracion = fields.Boolean(
+    string='Requiere Refrigeracion',
+    default=False,
+    help='El producto debe mantenerse refrigerado'
+  )
+
+  tiene_garantia = fields.Boolean(
+    string='Tiene garantía',
+    default=False,
+    help='El producto incluye garantía del fabricante'
+  )
+
+  # Selection * Avanzado *
+  estado = fields.Selection(
+    selection = [
+      ('borrador', 'Borrador'),
+      ('en_revision', 'En revision'),
+      ('aprobado', 'Aprobado'),
+      ('rechazado', 'Rechazado'),
+      ('archivado', 'Archivado')
+    ], 
+    string='Estado del producto',
+    default='borrador',
+    required=True,
+    copy=False, # No copiar estado duplicado
+    tracking=True, # Registrar cambios en chatter
+    help='Estado actual en el flujo de aprobación del producto'
+  )
+
+  # Campos condicionales 
+  # que aparecen segun el estado
+  motivo_rechazo = fields.Text(
+    string='Motivo del rechazo',
+    help='Explicación detallada del rechazo del producto',
+    copy=False # No copiar motivo duplicado
+  )
+
+  fecha_aprobacion = fields.Datetime(
+    string='Fecha de aprobación',
+    copy=False, # No copiar fecha en duplicados
+    readonly=True
+  )
+
+  # Campos relacionales 
+  # *DEPENDE DEL ESTADO* Cada producto puede ser aprobado por un usuario - un usuario puede aprobar varios productos
+  aprobado_por = fields.Many2one(
+    'res.users',
+    string='Aprobado por',
+    copy=False, # No copiar valor del campo al duplicar
+    readonly=True # No modificable
+  )
+
+  # Depende del campo garantia
+  duracion_garantia_mes = fields.Integer(
+    string='Duración garantía (meses)',
+    default=12,
+    help='Duración de la garantía en meses',
+    copy=False # no copiar el valor del campo al duplicar
+  )
+
+  # Depende del campo refrigeracion
+  temperatura_refrigeracion = fields.Float(
+    string='Temperatura Refrigeración (°C)',
+    digits=('3,1'), # 3 digitos en total : 18.5
+    help='Temperatura óptima de refrigeración',
+    copy=False # no copiar el valor del campo al duplicar
+  )
+
+  # Depende del campo fragilidad
+  instrucciones_fragilidad = fields.Text(
+    string='Instrucciones fragilidad',
+    help='Instrucciones específicas para manejo de producto frágil',
+    copy=False # no copiar el valor del campo al duplicar
+  )
+
+  # Campos Dinámicos
+  color_estado = fields.Integer(
+    string='Color del estado',
+    compute='compute_color_estado',
+    store=False, # No se guarda en la BD
+    help='Color para mostrar en la vista kanban'
+  )
+
   # Métodos 
   # Internos _ no deben ser llamados desde la UI
   # Métodos CHAR
@@ -159,6 +248,21 @@ class Producto(models.Model):
           _('La cantidad en stock no puede ser negativa.')
         )
   
+  # Validar peso
+  @api.constrains('peso_kg')
+  def _check_peso_kg(self):
+    """Validar que el peso sea lógico"""
+    for record in self:
+      if record.peso_kg < 0:
+        raise ValidationError(
+          _('El peso no puede ser negativo')
+        )
+      if record.peso_kg > 10000:
+        raise ValidationError(
+          _('El peso no puede exceder de 10000 toneladas. Revise el peso')
+        )
+  
+  # Validaciones combinadas
   # Validar precio compra y precio de venta
   @api.constrains('precio_compra', 'precio_venta')
   def _check_precios(self):
@@ -177,20 +281,47 @@ class Producto(models.Model):
         # Advertencia
         # En producción puede ser error
         pass # Genera un log aquí
-  
-  # Validar peso
-  @api.constrains('peso_kg')
-  def _check_peso_kg(self):
-    """Validar que el peso sea lógico"""
+    
+  # Validar estado y precio_venta
+  @api.constrains('estado','precio_venta')
+  def _check_estado_precio(self):
+    """Validar que productos aprobados tenga precio de venta"""
     for record in self:
-      if record.peso_kg < 0:
+      if record.estado == 'aprobado' and record.precio_venta < 0:
         raise ValidationError(
-          _('El peso no puede ser negativo')
+          _('Los productos aprobados deben de tener un precio de venta')
         )
-      if record.peso_kg > 10000:
+  
+  # Validar estado y motivo de rechazo
+  @api.constrains('estado', 'motivo_rechazo')
+  def _check_estado_motivo(self):
+    """Validar que los productos rechazados tengan un motivo"""
+    for record in self:
+      if record.estado == 'rechazado' and not record.motivo_rechazo:
         raise ValidationError(
-          _('El peso no puede exceder de 10000 toneladas. Revise el peso')
+          _('Los productos rechazados deben de tener un motivo')
         )
+      
+  # Validar garantia y duracion de garantia
+  @api.constrains('tiene_garantia','duracion_garantia_mes')
+  def _check_garantia_duracion(self):
+    """Validar duracion de garantia si tiene"""
+    for record in self:
+      if record.tiene_garantia and record.duracion_garantia_mes <= 0:
+        raise ValidationError(
+          _('La duración de la garantía debe ser mayor que 0')
+        )
+  
+  # Validar refrigeracion y temperatura
+  @api.constrains('requiere_refrigeracion', 'temperatura_refrigeracion')
+  def _check_temperatura(self):
+    """Validar la temperatura correcta"""
+    for record in self:
+      if record.requiere_refrigeracion:
+        if not (-50 <= record.temperatura_refrigeracion <= 10):
+          raise ValidationError(
+            _('La temperatura de refrigeracion debe estar entre -50 y 10°C')
+          )
   
   # Métodos de Acción básico
   # No llevan _, son pensados para botones xml etc.
@@ -211,3 +342,176 @@ class Producto(models.Model):
     """Ajustar el stock"""
     self.cantidad_stock += cantidad
     return True
+  
+  # Método para cambiar el estado (Transiciones controladas)
+  # Enviar a revisión
+  def action_enviar_revision(self):
+    """Enviar producto a revisión"""
+    valid_states = ['borrador', 'rechazado']
+
+    for record in self:
+      if record.estado not in valid_states:
+        raise ValidationError(
+          _('Solo productos con estado: "Borrador" o "Rechazado" pueden enviarse a revisión')
+        )
+      
+      # Cambiar el estado a revisión
+      record.write({
+        'estado': 'en_revision',
+        'motivo_rechazo': False # Limpiar el motivo de rechazo si había
+      })
+
+    return True
+  
+  # Aceptar producto
+  def action_aprobar(self):
+    """Aprobar producto (Necesita precio de venta)"""
+    valid_states = ['en_revision']
+
+    for record in self:
+      if record.estado not in valid_states:
+        raise ValidationError(
+          _('Solo productos con estado "En revisión" pueden aprobarse')
+        )
+      
+      if record.precio_venta <= 0:
+        raise ValidationError(
+          _('Solo se pueden aprobar productos con precio de venta')
+        )
+      
+      # Aprobar
+      record.write({
+        'estado': 'aprobado',
+        'fecha_aprobacion': fields.Datetime.now(),
+        'aprobado_por': self.env.user.id
+      })
+    
+    return True
+  
+  # Rechazar producto
+  def action_rechazar(self):
+    """Rechazar producto (Necesita motivo)"""
+    valid_states = ['aprobado', 'en_revision']
+
+    for record in self:
+      if record.estado not in valid_states:
+        raise ValidationError(
+          _('Solo se pueden rechazar productos aprobados o en revisión')
+        )
+      
+      if not record.motivo_rechazo:
+        raise ValidationError(
+          _('Debe especificar un motivo')
+        )
+      
+      # Rechazar producto
+      record.write({
+        'estado': 'rechazado'
+      })
+    
+    return True
+  
+  # Archivar el producto
+  def action_archivar(self):
+    """Archivar producto"""
+    valid_states = ['aprobado', 'rechazado']
+
+    for record in self:
+      if record.estado not in valid_states:
+        raise ValidationError(
+          _('Solo se pueden archivar productos aprobados o rechazados')
+        )
+      
+      # Archivar productos
+      record.write({
+        'estado': 'archivado',
+        'esta_activo': False # Lo desactiva
+      })
+    
+    return True
+  
+  # Reactivar desde archivo
+  def action_reactivar_producto_archivo(self):
+    """Reactivar producto desde archivo a borrador"""
+    for record in self:
+      if record.estado != 'archivado':
+        raise ValidationError(
+          _('Solo productos archivados pueden reactivarse')
+        )
+      
+      # Reactivar
+      record.write({
+        'estado': 'borrador',
+        'esta_activo': True, # Activa el producto
+        'motivo_rechazo': False
+      })
+    
+    return True
+  
+  # Método para guardar von notificacion
+  def action_guardar(self):
+        """Método para el botón Guardar Cambios"""
+        # self.ensure_one()  # Usar para asegurar que se guarde solo un registro
+        
+        # Validaciones adicionales antes de guardar
+        if self.estado == 'aprobado' and self.precio_venta <= 0:
+            raise ValidationError(
+                _('Un producto aprobado debe tener precio de venta mayor a 0.')
+            )
+        
+        message = f'Producto {self.name} guardado exitosamente!'
+        
+        # Mostrar notificación
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Guardado exitoso',
+                'message': message,
+                'sticky': False,
+                'type': 'success',
+                'next': {'type': 'ir.actions.act_window_close'},  # Cerrar wizard si hay
+            }
+        }
+  
+  # Métodos computados
+  @api.depends('estado')
+  def _compute_color_estado(self):
+    """Asigna un color segun el estado"""
+    colores = {
+      'borrador': 0, # Gris
+      'en_revision': 1, # Azul
+      'aprobado': 10, # Verde
+      'rechazado': 2, # Rojo
+      'archivado': 3 # Morado
+    }
+
+    for record in self:
+      record.color_estado = colores.get(record.estado, 0) # Gris por defecto
+  
+  # Métodos Onchange (Cambios en tiempos real)
+  # Reset duracion si no tiene garantia
+  @api.onchange('tiene_garantia')
+  def _onchange_tiene_garantia(self):
+    """Resetear duración de garantía si se desactiva garantia"""
+    for record in self:
+      if not record.tiene_garantia:
+        record.duracion_garantia_mes = 0
+  
+  # Reset temperatura si no requiere refrigeracion
+  @api.onchange('requiere_refrigeracion')
+  def _onchange_requiere_refrigeracion(self):
+    """Resetear temperatura si no requiere refrigeracion"""
+    for record in self:
+      if not record.requiere_refrigeracion:
+        record.temperatura_refrigeracion = 0.0
+
+  # Resetear instrucciones si no es fragil
+  @api.onchange('es_fragil')
+  def _onchange_es_fragil(self):
+    """Resetear instrucciones si no es fragil"""
+    for record in self:
+      if not record.es_fragil:
+        record.instrucciones_fragilidad = False
+        
+

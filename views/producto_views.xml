@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-  <!--Vista Tree: Arbol-->
+  <!--Vista Tree: Arbol (CON LÓGICA
+  CONDICIONAL)-->
   <record id="view_producto_tree" model="ir.ui.view">
     <field name="name">gestion.producto.tree</field>
     <field name="model">gestion.producto</field>
@@ -9,9 +10,13 @@
       <tree>
         <field name="codigo" string="SKU" />
         <field name="name" string="Nombre" />
+        <field name="estado" string="Estado" widget="badge" decoration-info="estado=='en_revision'"
+          decoration-danger="estado=='rechazado'" decoration-success="estado=='aprobado'" />
         <field name="cantidad_stock" string="Cantidad en stock" />
         <field name="precio_venta" string="Precio de venta" />
-        <field name="esta_activo" string="Activo" />
+        <field name="esta_activo" string="Activo" invisible="1" />
+        <field name="es_fragil" string="Es fragil" />
+        <field name="requiere_refrigeracion" string="Requiere Refrigeracion" />
       </tree>
     </field>
   </record>
@@ -26,6 +31,54 @@
         <!--Encabezado
         del formulario-->
         <header>
+          <!--Botones
+          contextuales-->
+          <!--Segun
+          estado-->
+          <!--En
+          revisión-->
+          <button
+            name="action_enviar_revision"
+            string="Enviar a Revisión"
+            type="object"
+            class="btn-primary"
+            attrs="{'invisible': [('estado', 'not in', ['borrador','rechazado'])]}" />
+          <!--Boton
+          para aprobar-->
+          <button
+            name="action_aprobar"
+            string="Aprobar"
+            type="object"
+            class="btn-success"
+            attrs="{'invisible': [('estado', '!=', 'en_revision')]}" />
+          <!--Botón
+          para rechazar-->
+          <button
+            name="action_rechazar"
+            string="Rechazar"
+            type="object"
+            class="btn-danger"
+            attrs="{'invisible': [('estado', 'not in', ['aprobado', 'en_revision'])]}" />
+          <!--Botón
+          para archivar-->
+          <button
+            name="action_archivar"
+            string="Archivar"
+            type="object"
+            class="btn-secondary"
+            attrs="{'invisible': [('estado', 'not in', ['aprobado', 'en_revision'])]}" />
+          <!--Botón
+          para reactivar-->
+          <button
+            name="action_reactivar_producto_archivo"
+            string="Reactivar producto desde archivo"
+            type="object"
+            class="btn-warning"
+            attrs="{'invisible': [('estado', '!=', 'archivado')]}" />
+          <!--Barra
+          de estado-->
+          <field name="estado" widget="statusbar"
+            statusbar_visible="borrador,en_revision,aprobado,rechazado,archivado" clickable="true" />
           <!--Botones
           de activar y desactivar dinamicos-->
           <button
@@ -51,6 +104,11 @@
               <field name="esta_activo" string="Activo" />
             </group>
             <group>
+              <field name="estado" string="Estado del producto" readonly="1" />
+              <field name="aprobado_por" string="Aprobado por"
+                attrs="{'invisible': [('estado', '!=', 'aprobado')]}" />
+              <field name="fecha_aprobacion" string="Fecha de aprobacion"
+                attrs="{'invisible': [('estado', '!=', 'aprobado')]}" />
               <field name="cantidad_stock" string="Cantidad en stock" />
               <field name="vida_util_meses" string="Vida util en meses" />
             </group>
@@ -63,11 +121,50 @@
               <field name="precio_compra" string="Precio de compra" />
             </group>
             <group>
-              <field name="precio_venta" string="Precio de venta" />
+              <field name="precio_venta" string="Precio de venta"
+                attrs="{'invisible': [('estado', '=', 'aprobado')]}" />
             </group>
           </group>
 
-          <separator string="Detalles especificos" />
+          <!--Campos
+          condicionales para rechazar-->
+          <group attrs="{'invisible': [('estado', '!=', 'rechazado')]}">
+            <label for="motivo_rechazo" string="Informacion del rechazo" />
+            <field name="motivo_rechazo" nolabel="1" placeholder="Explique el motivo del rechazo..." />
+          </group>
+
+          <separator string="Caracteristicas especiales" />
+
+          <!--Booleanos
+          condicionales-->
+          <group>
+            <!--Si
+            es fragil-->
+            <group>
+              <field name="es_fragil" string="¿Es fragil?" />
+              <field name="instrucciones_fragilidad" string="Instrucciones para fragilidad"
+                attrs="{'invisible': [('es_fragil', '=', 'False')], 'required': [('es_fragil', '=', 'True')]}"
+                placeholder="Ej: Manejar con cuidado, no apilar, etc." />
+            </group>
+            <!--Si
+            requiere refrigeracion-->
+            <group>
+              <field name="requiere_refrigeracion" string="¿Requiere refrigeracion?" />
+              <field name="temperatura_refrigeracion" string="Temperatura Cº"
+                attrs="{'invisible': [('requiere_refrigeracion', '=', 'False')], 'required': [('requiere_refrigeracion', '=', 'True')]}"
+              />
+            </group>
+            <!--Si
+            tiene garantía-->
+            <group>
+              <field name="tiene_garantia" string="¿Tiene Garantia?" />
+              <field name="duracion_garantia_mes" string="Duración de la garantía (meses)"
+                attrs="{'invisible': [('tiene_garantia', '=', 'False')], 'required': [('tiene_garantia', '=', 'True')]}"
+              />
+            </group>
+          </group>
+
+          <separator string="Detalles generales" />
 
           <group>
             <field name="peso_kg" string="Peso en kgs" />
@@ -75,7 +172,11 @@
           </group>
 
           <footer>
-            <field name="fecha_creacion" string="Fecha de creacion" readonly="1" />
+            <field name="fecha_creacion" readonly="1" />
+            <button name="action_guardar"
+              string="Guardar Cambios"
+              type="object"
+              class="btn-primary" />
           </footer>
         </sheet>
       </form>

@@ -1,40 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo noupdate="1">
-  <!-- noupdate="1" significa que no se actualiza al reinstalar -->
 
   <record id="producto_demo_1" model="gestion.producto">
     <field name="codigo">PROD-00001</field>
     <field name="name">Laptop Dell XPS 13</field>
     <field name="descripcion">Laptop ultrabook de 13 pulgadas, 16GB RAM, 512GB SSD</field>
+    <field name="estado">aprobado</field>
     <field name="cantidad_stock">5</field>
     <field name="precio_compra">1200.00</field>
     <field name="precio_venta">1500.00</field>
     <field name="peso_kg">1.2</field>
     <field name="vida_util_meses">36</field>
     <field name="esta_activo">True</field>
+    <field name="es_fragil">True</field>
+    <field name="instrucciones_fragilidad">No golpear, transportar en maletín rígido</field>
+    <field name="tiene_garantia">True</field>
+    <field name="duracion_garantia_mes">24</field>
+    <field name="fecha_aprobacion"
+      eval="(datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')" />
+    <field name="aprobado_por" ref="base.user_admin" />
   </record>
 
   <record id="producto_demo_2" model="gestion.producto">
     <field name="codigo">PROD-00002</field>
     <field name="name">Mouse Inalámbrico Logitech</field>
     <field name="descripcion">Mouse ergonómico inalámbrico, batería de 12 meses</field>
+    <field name="estado">aprobado</field>
     <field name="cantidad_stock">50</field>
     <field name="precio_compra">25.00</field>
     <field name="precio_venta">40.00</field>
     <field name="peso_kg">0.150</field>
     <field name="vida_util_meses">24</field>
     <field name="esta_activo">True</field>
+    <field name="es_fragil">False</field>
   </record>
 
   <record id="producto_demo_3" model="gestion.producto">
     <field name="codigo">PROD-00003</field>
     <field name="name">Teclado Mecánico Redragon</field>
     <field name="descripcion">Teclado mecánico gaming con retroiluminación RGB</field>
+    <field name="estado">en_revision</field>
     <field name="cantidad_stock">15</field>
     <field name="precio_compra">60.00</field>
     <field name="precio_venta">90.00</field>
     <field name="peso_kg">1.050</field>
     <field name="vida_util_meses">30</field>
     <field name="esta_activo">True</field>
+    <field name="es_fragil">True</field>
+    <field name="instrucciones_fragilidad">No exponer a líquidos, limpiar con paño seco</field>
+  </record>
+
+  <record id="producto_demo_4" model="gestion.producto">
+    <field name="codigo">PROD-00004</field>
+    <field name="name">Yogur Natural 1kg</field>
+    <field name="descripcion">Yogur natural sin azúcar, envase de 1kg</field>
+    <field name="estado">aprobado</field>
+    <field name="cantidad_stock">100</field>
+    <field name="precio_compra">3.50</field>
+    <field name="precio_venta">5.00</field>
+    <field name="peso_kg">1.1</field>
+    <field name="vida_util_meses">1</field>
+    <field name="esta_activo">True</field>
+    <field name="requiere_refrigeracion">True</field>
+    <field name="temperatura_refrigeracion">4.0</field>
+    <field name="tiene_garantia">False</field>
+  </record>
+
+  <record id="producto_demo_5" model="gestion.producto">
+    <field name="codigo">PROD-00005</field>
+    <field name="name">Prototipo de Smartwatch</field>
+    <field name="descripcion">Prototipo en desarrollo, no disponible para venta</field>
+    <field name="estado">borrador</field>
+    <field name="cantidad_stock">2</field>
+    <field name="precio_compra">200.00</field>
+    <field name="precio_venta">0.00</field>
+    <field name="peso_kg">0.080</field>
+    <field name="vida_util_meses">6</field>
+    <field name="esta_activo">False</field>
+    <field name="es_fragil">True</field>
+    <field name="instrucciones_fragilidad">Manejar con guantes antiestáticos</field>
   </record>
 </odoo>
