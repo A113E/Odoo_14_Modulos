@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo noupdate="1">
+  <?python
+from datetime import datetime, timedelta
+now = datetime.now()?>
 
   <record id="producto_demo_1" model="gestion.producto">
     <field name="codigo">PROD-00001</field>
@@ -19,6 +22,11 @@
     <field name="fecha_aprobacion"
       eval="(datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')" />
     <field name="aprobado_por" ref="base.user_admin" />
+    <!-- Campos nuevos para producto no perecedero con revisión -->
+    <field name="fecha_ultima_revision"
+      eval="(datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d')" />
+    <field name="fecha_hora_ultima_venta"
+      eval="(datetime.now() - timedelta(days=15, hours=2, minutes=30)).strftime('%Y-%m-%d %H:%M:%S')" />
   </record>
 
   <record id="producto_demo_2" model="gestion.producto">
@@ -33,6 +41,11 @@
     <field name="vida_util_meses">24</field>
     <field name="esta_activo">True</field>
     <field name="es_fragil">False</field>
+    <!-- Campos nuevos para producto no perecedero -->
+    <field name="fecha_ultima_revision"
+      eval="(datetime.now() - timedelta(days=60)).strftime('%Y-%m-%d')" />
+    <field name="fecha_hora_ultima_venta"
+      eval="(datetime.now() - timedelta(days=5, hours=8)).strftime('%Y-%m-%d %H:%M:%S')" />
   </record>
 
   <record id="producto_demo_3" model="gestion.producto">
@@ -48,6 +61,12 @@
     <field name="esta_activo">True</field>
     <field name="es_fragil">True</field>
     <field name="instrucciones_fragilidad">No exponer a líquidos, limpiar con paño seco</field>
+    <!-- Campos nuevos para producto en revisión -->
+    <field name="fecha_ultima_revision"
+      eval="(datetime.now() - timedelta(days=120)).strftime('%Y-%m-%d')" />
+    <field name="necesita_revision">True</field>
+    <field name="fecha_hora_ultima_venta"
+      eval="(datetime.now() - timedelta(days=10, hours=6, minutes=45)).strftime('%Y-%m-%d %H:%M:%S')" />
   </record>
 
   <record id="producto_demo_4" model="gestion.producto">
@@ -64,6 +83,15 @@
     <field name="requiere_refrigeracion">True</field>
     <field name="temperatura_refrigeracion">4.0</field>
     <field name="tiene_garantia">False</field>
+    <!-- Campos nuevos para producto perecedero -->
+    <field name="fecha_fabricacion" eval="(datetime.now() - timedelta(days=5)).strftime('%Y-%m-%d')" />
+    <field name="fecha_vencimiento"
+      eval="(datetime.now() + timedelta(days=25)).strftime('%Y-%m-%d')" />
+    <field name="fecha_hora_recepcion"
+      eval="(datetime.now() - timedelta(days=4, hours=3)).strftime('%Y-%m-%d %H:%M:%S')" />
+    <!-- Como es perecedero, también puede tener fecha de última venta -->
+    <field name="fecha_hora_ultima_venta"
+      eval="(datetime.now() - timedelta(days=1, hours=5)).strftime('%Y-%m-%d %H:%M:%S')" />
   </record>
 
   <record id="producto_demo_5" model="gestion.producto">
@@ -79,5 +107,10 @@
     <field name="esta_activo">False</field>
     <field name="es_fragil">True</field>
     <field name="instrucciones_fragilidad">Manejar con guantes antiestáticos</field>
+    <!-- Campos nuevos para prototipo con revisión próxima -->
+    <field name="fecha_ultima_revision"
+      eval="(datetime.now() - timedelta(days=200)).strftime('%Y-%m-%d')" />
+    <field name="necesita_revision">True</field>
+    <!-- Como es prototipo y no está activo, no tiene ventas -->
   </record>
 </odoo>

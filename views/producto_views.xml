@@ -12,7 +12,19 @@
         <field name="name" string="Nombre" />
         <field name="estado" string="Estado" widget="badge" decoration-info="estado=='en_revision'"
           decoration-danger="estado=='rechazado'" decoration-success="estado=='aprobado'" />
+        <!--Indicadores
+        temporales con iconos-->
+        <field name="dias_para_vencer" string="Días venc." widget="progressbar"
+          options="{'max_value': 365, 'editable': false}"
+          decoration-danger="dias_para_vencer &lt; 0"
+          decoration-warning="esta_por_vencer==True and dias_para_vencer &gt;=0" />
+        <field name="esta_por_vencer" invisible="1" />
+        <field name="fecha_vencimiento" string="Vencimiento" widget="date" />
+        <field name="necesita_revision" string="Revisión" widget="boolean" />
+        <field name="alerta_stock_bajo" string="Alerta Stock Bajo" widget="boolean"
+          decoration-danger="alerta_stock_bajo" />
         <field name="cantidad_stock" string="Cantidad en stock" />
+        <field name="vida_util_meses" string="Vida útil (meses)" />
         <field name="precio_venta" string="Precio de venta" />
         <field name="esta_activo" string="Activo" invisible="1" />
         <field name="es_fragil" string="Es fragil" />
@@ -101,7 +113,7 @@
             <group>
               <field name="codigo" string="Codigo SKU" />
               <field name="name" string="Nombre del producto" />
-              <field name="esta_activo" string="Activo" />
+              <field name="esta_activo" string="Activo" readonly="1" />
             </group>
             <group>
               <field name="estado" string="Estado del producto" readonly="1" />
@@ -122,7 +134,7 @@
             </group>
             <group>
               <field name="precio_venta" string="Precio de venta"
-                attrs="{'invisible': [('estado', '=', 'aprobado')]}" />
+                attrs="{'readonly': [('estado', '=', 'aprobado')]}" />
             </group>
           </group>
 
@@ -131,6 +143,72 @@
           <group attrs="{'invisible': [('estado', '!=', 'rechazado')]}">
             <label for="motivo_rechazo" string="Informacion del rechazo" />
             <field name="motivo_rechazo" nolabel="1" placeholder="Explique el motivo del rechazo..." />
+          </group>
+
+          <!--Widgets
+          temporales-->
+          <separator string="Información temporal"
+            attrs="{'invisible': [('requiere_refrigeracion', '=', False), ('fecha_fabricacion', '=', False), ('fecha_vencimiento', '=', False)]}" />
+
+          <group>
+            <group>
+              <!--Fechas
+              con widgets personalizados-->
+              <field name="fecha_fabricacion" string="Fabricación" widget="date"
+                options="{'format': 'dd/MM/yyyy', 'placeholder': 'DD/MM/AAAA'}" />
+              <!--Vencimiento
+              depende si requiere refrigeración-->
+              <field name="fecha_vencimiento" string="Vencimiento" widget="date"
+                options="{'format': 'dd/MM/yyyy', 'placeholder': 'DD/MM/AAAA'}"
+                attrs="{'required': [('requiere_refrigeracion', '=', True)]}" />
+
+              <!--Campos
+              calculados que se actualizan automaticamente-->
+              <field name="dias_para_vencer" string="Días para vencer" widget="progressbar"
+                options="{'editable': false, 'max_value': 365, 'edit_max_value': false}"
+                attrs="{'invisible': [('fecha_vencimiento', '=', False)]}" />
+              <field name="antiguedad_dias" string="Antiguedad (dias)" readonly="1" />
+            </group>
+
+            <group>
+              <!--Campos
+              datetime con zona horaria-->
+              <field name="fecha_hora_recepcion" string="Recepción" widget="datetime"
+                options="{'format': 'dd/MM/yyyy HH:mm:ss', 'timezone': 'user.tz'}" />
+              <field name="fecha_hora_ultima_venta" string="última venta" widget="datetime"
+                options="{'format': 'dd/MM/yyyy HH:mm:ss'}" readonly="1" />
+
+              <!--Indicadores
+              booleanos calculados-->
+              <field name="esta_por_vencer" string="Por vencer" widget="boolean"
+                attrs="{'readonly': 1, 'column_invisible': 1}" />
+              <field name="alerta_stock_bajo" string="Alerta Stock Bajo" widget="boolean"
+                attrs="{'readonly': 1, 'column_invisible': 1}" />
+            </group>
+          </group>
+
+          <separator string="Gestión de revisiones"
+            attrs="{'invisible': [('fecha_ultima_revision', '=', False), ('fecha_proxima_revision', '=', False)]}" />
+
+          <group>
+            <group>
+              <field name="fecha_ultima_revision" string="Última revisión" widget="date" />
+              <field name="necesita_revision" string="Necesita revisión" widget="boolean"
+                attrs="{'readonly': 1}" />
+            </group>
+            <group>
+              <field name="fecha_proxima_revision" string="Próxima revisión" widget="date"
+                readonly="1" />
+
+              <!--Botones
+              para acciones temporales-->
+              <button name="action_registrar_revision" string="Registrar revisión hoy" type="object"
+                class="btn-primary"
+                attrs="{'invisible': [('necesita_revision', '=', False)]}" />
+              <button name="action_posponer_revision" string="Posponer 30 días" type="object"
+                class="btn-secondary"
+                attrs="{'invisible': [('necesita_revision', '=', False)]}" />
+            </group>
           </group>
 
           <separator string="Caracteristicas especiales" />
@@ -210,9 +288,35 @@
           domain="[('requiere_refrigeracion', '=', True)]" />
         <filter name="con_garantia" string="Con Garantia" domain="[('tiene_garantia', '=', True)]" />
 
+        <!--Filtros
+        temporales-->
+        <filter name="por_vencer_30_dias" string="Por vencer"
+          domain="[('esta_por_vencer', '=', True)]" />
+        <filter name="vencidos" string="Vencidos"
+          domain="[('fecha_vencimiento', '!=', False), ('fecha_vencimiento', '&lt;', context_today())]" />
+        <filter name="necesitan_revision" string="Por revisar"
+          domain="[('necesita_revision', '=', True)]" />
+        <filter name="alerta_stock" string="Con Alerta stock"
+          domain="[('alerta_stock_bajo','=', True)]" />
+        <filter name="recepcion_ultima_semana" string="Recibidos Última Semana"
+          domain="[('fecha_hora_recepcion','&gt;=',(context_today() - datetime.timedelta(days=7)).strftime('%%Y-%%m-%%d'))]" />
+        <separator />
+
+        <!--Filtros
+        por rango de fechas (Personalizado)-->
+        <filter name="filter_fecha_vencimiento" string="Vencimiento"
+          date="fecha_vencimiento" />
+        <filter name="filter_fecha_fabricacion" string="Fabricación" date="fecha_fabricacion" />
+
+        <separator />
+
         <!--Filtro
         grupal (Por estado)-->
         <filter name="group_estado" string="Agrupar por estado" context="{'group_by': 'estado'}" />
+        <!--Vencimiento
+        (mes)-->
+        <filter name="group_por_mes_vencimiento" string="Agrupar por mes de vencimiento"
+          context="{'group_by': 'fecha_vencimiento:month'}" />
 
         <separator />
 
