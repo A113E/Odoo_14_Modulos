@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!--Diseño kanban-->
+  <record id="view_producto_kanban" model="ir.ui.view">
+    <field name="name">gestion.producto.kanban</field>
+    <field name="model">gestion.producto</field>
+    <field name="arch" type="xml">
+      <kanban class="o_kanban_mobile">
+        <field name="color_estado" />
+        <field name="name" />
+        <field name="codigo" />
+        <field name="estado" />
+        <field name="resumen_descripcion" />
+        <field name="tiene_manual" />
+        <field name="tiene_instrucciones_montaje" />
+
+        <templates>
+          <t t-name="kanban-box">
+            <div class="oe_kanban_global_click">
+              <!--Cabecera-->
+              <div class="o_kanban_record_top">
+                <strong>
+                  <field name="name" />
+                </strong>
+                <small class="float-right">
+                  <field name="codigo" />
+                </small>
+              </div>
+              <!--Cuerpo-->
+              <div class="o_kanban_record_body">
+                <div t-if="record.resumen_descripcion.raw_value">
+                  <small t-esc="record.resumen_descripcion.value" />
+                </div>
+                <div t-else="">
+                  <small class="text-muted">Sin descripción</small>
+                </div>
+              </div>
+              <!--Pie-->
+              <div class="o_kanban_record_bottom">
+                <div class="oe_kanban_bottom_left">
+                  <field name="estado" widget="badge" />
+                </div>
+                <div class="oe_kanban_bottom_right">
+                  <i t-if="record.tiene_manual.raw_value"
+                    class="fa fa-book"
+                    title="Tiene manual" />
+                  <i t-if="record.tiene_instrucciones_montaje.raw_value"
+                    class="fa fa-wrench ml-1"
+                    title="Tiene instrucciones" />
+                </div>
+              </div>
+            </div>
+          </t>
+        </templates>
+      </kanban>
+    </field>
+  </record>
+
+</odoo>

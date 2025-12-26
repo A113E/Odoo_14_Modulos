@@ -4,11 +4,60 @@
 from datetime import datetime, timedelta
 now = datetime.now()?>
 
+  <!-- Producto 1: Aprobado, no perecedero, sin vencimiento -->
   <record id="producto_demo_1" model="gestion.producto">
     <field name="codigo">PROD-00001</field>
     <field name="name">Laptop Dell XPS 13</field>
     <field name="descripcion">Laptop ultrabook de 13 pulgadas, 16GB RAM, 512GB SSD</field>
     <field name="estado">aprobado</field>
+    <field name="descripcion_larga"><![CDATA[
+    <h2>Laptop Dell XPS 13 - Potencia y Elegancia</h2>
+    <p>La <strong>Dell XPS 13</strong> redefine lo que es posible en una laptop de 13 pulgadas. Con un diseño infinitamente elegante y potencia de sobra para cualquier tarea.</p>
+
+    <h3>Características Principales:</h3>
+    <ul>
+      <li><b>Pantalla:</b> 13.4" 4K UHD+ InfinityEdge Touch</li>
+      <li><b>Procesador:</b> Intel Core i7 de 11ª generación</li>
+      <li><b>Memoria:</b> 16GB LPDDR4x</li>
+      <li><b>Almacenamiento:</b> 512GB SSD M.2 PCIe NVMe</li>
+      <li><b>Gráficos:</b> Intel Iris Xe</li>
+    </ul>
+
+    <h3>Diseño Innovador:</h3>
+    <p>Marco infinito que maximiza la pantalla en un chasis compacto. Construido en aluminio y fibra de carbono para durabilidad y estilo.</p>
+    ]]></field>
+
+    <field name="especificaciones_tecnicas"><![CDATA[
+    Sistema Operativo: Windows 11 Pro
+    Procesador: Intel Core i7-1165G7 (12MB cache, hasta 4.7 GHz)
+    Memoria: 16GB LPDDR4x, 4267MHz
+    Almacenamiento: 512GB M.2 PCIe NVMe SSD
+    Pantalla: 13.4" 4K UHD+ (3840 x 2400) InfinityEdge Touch
+    Gràficos: Intel Iris Xe
+    Conectividad: Killer Wi-Fi 6, Bluetooth 5.1
+    Puertos: 2x Thunderbolt 4, 1x MicroSD, 1x Jack 3.5mm
+    Batería: 52Whr, adaptador de 45W
+    Dimensiones: 295.7 x 198.7 x 14.8 mm
+    Peso: 1.27 kg
+    ]]></field>
+
+    <field name="manual_usuario"><![CDATA[
+    <h1>Manual de Usuario Dell XPS 13</h1>
+    <h2>Contenido del Paquete</h2>
+    <ul>
+      <li>Laptop Dell XPS 13</li>
+      <li>Adaptador de corriente USB-C</li>
+      <li>Cable USB-C a USB-C</li>
+      <li>Documentación y garantía</li>
+    </ul>
+
+    <h2>Primeros Pasos</h2>
+    <ol>
+      <li>Conecte el adaptador de corriente</li>
+      <li>Presione el botón de encendido</li>
+      <li>Siga las instrucciones de configuración de Windows</li>
+    </ol>
+    ]]></field>
     <field name="cantidad_stock">5</field>
     <field name="precio_compra">1200.00</field>
     <field name="precio_venta">1500.00</field>
@@ -22,13 +71,15 @@ now = datetime.now()?>
     <field name="fecha_aprobacion"
       eval="(datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')" />
     <field name="aprobado_por" ref="base.user_admin" />
-    <!-- Campos nuevos para producto no perecedero con revisión -->
+    <!-- No perecedero con revisión, sin fecha de vencimiento -->
     <field name="fecha_ultima_revision"
       eval="(datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d')" />
     <field name="fecha_hora_ultima_venta"
       eval="(datetime.now() - timedelta(days=15, hours=2, minutes=30)).strftime('%Y-%m-%d %H:%M:%S')" />
+    <!-- Sin fecha de vencimiento para demostrar no perecedero -->
   </record>
 
+  <!-- Producto 2: Aprobado, por vencer (para mostrar decoration-warning) -->
   <record id="producto_demo_2" model="gestion.producto">
     <field name="codigo">PROD-00002</field>
     <field name="name">Mouse Inalámbrico Logitech</field>
@@ -41,13 +92,19 @@ now = datetime.now()?>
     <field name="vida_util_meses">24</field>
     <field name="esta_activo">True</field>
     <field name="es_fragil">False</field>
-    <!-- Campos nuevos para producto no perecedero -->
+    <!-- Campos para mostrar "por vencer" (menos de 30 días) -->
+    <field name="fecha_fabricacion"
+      eval="(datetime.now() - timedelta(days=180)).strftime('%Y-%m-%d')" />
+    <field name="fecha_vencimiento"
+      eval="(datetime.now() + timedelta(days=15)).strftime('%Y-%m-%d')" />
+    <!-- Activará: esta_por_vencer = True -->
     <field name="fecha_ultima_revision"
       eval="(datetime.now() - timedelta(days=60)).strftime('%Y-%m-%d')" />
     <field name="fecha_hora_ultima_venta"
       eval="(datetime.now() - timedelta(days=5, hours=8)).strftime('%Y-%m-%d %H:%M:%S')" />
   </record>
 
+  <!-- Producto 3: En revisión, necesita revisión -->
   <record id="producto_demo_3" model="gestion.producto">
     <field name="codigo">PROD-00003</field>
     <field name="name">Teclado Mecánico Redragon</field>
@@ -61,7 +118,11 @@ now = datetime.now()?>
     <field name="esta_activo">True</field>
     <field name="es_fragil">True</field>
     <field name="instrucciones_fragilidad">No exponer a líquidos, limpiar con paño seco</field>
-    <!-- Campos nuevos para producto en revisión -->
+    <!-- Campos nuevos para producto en revisión con fecha de vencimiento normal -->
+    <field name="fecha_fabricacion"
+      eval="(datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d')" />
+    <field name="fecha_vencimiento"
+      eval="(datetime.now() + timedelta(days=60)).strftime('%Y-%m-%d')" />
     <field name="fecha_ultima_revision"
       eval="(datetime.now() - timedelta(days=120)).strftime('%Y-%m-%d')" />
     <field name="necesita_revision">True</field>
@@ -69,6 +130,7 @@ now = datetime.now()?>
       eval="(datetime.now() - timedelta(days=10, hours=6, minutes=45)).strftime('%Y-%m-%d %H:%M:%S')" />
   </record>
 
+  <!-- Producto 4: Aprobado, refrigerado, por vencer -->
   <record id="producto_demo_4" model="gestion.producto">
     <field name="codigo">PROD-00004</field>
     <field name="name">Yogur Natural 1kg</field>
@@ -83,34 +145,136 @@ now = datetime.now()?>
     <field name="requiere_refrigeracion">True</field>
     <field name="temperatura_refrigeracion">4.0</field>
     <field name="tiene_garantia">False</field>
-    <!-- Campos nuevos para producto perecedero -->
+    <!-- Campos para producto perecedero POR VENCER (menos de 30 días) -->
     <field name="fecha_fabricacion" eval="(datetime.now() - timedelta(days=5)).strftime('%Y-%m-%d')" />
     <field name="fecha_vencimiento"
-      eval="(datetime.now() + timedelta(days=25)).strftime('%Y-%m-%d')" />
+      eval="(datetime.now() + timedelta(days=10)).strftime('%Y-%m-%d')" />
+    <!-- Activará: esta_por_vencer = True (10 días < 30) -->
     <field name="fecha_hora_recepcion"
       eval="(datetime.now() - timedelta(days=4, hours=3)).strftime('%Y-%m-%d %H:%M:%S')" />
-    <!-- Como es perecedero, también puede tener fecha de última venta -->
     <field name="fecha_hora_ultima_venta"
       eval="(datetime.now() - timedelta(days=1, hours=5)).strftime('%Y-%m-%d %H:%M:%S')" />
   </record>
 
+  <!-- Producto 5: POR VENCER (fecha futura cercana) -->
   <record id="producto_demo_5" model="gestion.producto">
     <field name="codigo">PROD-00005</field>
-    <field name="name">Prototipo de Smartwatch</field>
-    <field name="descripcion">Prototipo en desarrollo, no disponible para venta</field>
+    <field name="name">Leche Entera 1L</field>
+    <field name="descripcion">Leche entera pasteurizada, envase tetra pack 1 litro</field>
+    <field name="estado">aprobado</field>
+    <field name="cantidad_stock">30</field>
+    <field name="precio_compra">1.20</field>
+    <field name="precio_venta">1.80</field>
+    <field name="peso_kg">1.05</field>
+    <field name="vida_util_meses">1</field>
+    <field name="esta_activo">True</field>
+    <field name="requiere_refrigeracion">True</field>
+    <field name="temperatura_refrigeracion">4.0</field>
+    <field name="tiene_garantia">False</field>
+    <!-- CORREGIDO: Fecha futura (por vencer) en lugar de vencida -->
+    <field name="fecha_fabricacion"
+      eval="(datetime.now() - timedelta(days=20)).strftime('%Y-%m-%d')" />
+    <field name="fecha_vencimiento"
+      eval="(datetime.now() + timedelta(days=5)).strftime('%Y-%m-%d')" />
+    <!-- Activará: esta_por_vencer = True (5 días < 30) -->
+    <field name="fecha_hora_recepcion"
+      eval="(datetime.now() - timedelta(days=18, hours=2)).strftime('%Y-%m-%d %H:%M:%S')" />
+    <field name="fecha_hora_ultima_venta"
+      eval="(datetime.now() - timedelta(days=3, hours=2)).strftime('%Y-%m-%d %H:%M:%S')" />
+  </record>
+
+  <!-- Producto 6: VENCIDO PERO INACTIVO (para mostrar que puede existir) -->
+  <record id="producto_demo_6" model="gestion.producto">
+    <field name="codigo">PROD-00006</field>
+    <field name="name">Prototipo de Smartwatch Vencido</field>
+    <field name="descripcion">Prototipo vencido en desarrollo, no disponible para venta</field>
     <field name="estado">borrador</field>
     <field name="cantidad_stock">2</field>
     <field name="precio_compra">200.00</field>
     <field name="precio_venta">0.00</field>
     <field name="peso_kg">0.080</field>
     <field name="vida_util_meses">6</field>
+    <!-- IMPORTANTE: Inactivo para poder tener fecha pasada -->
     <field name="esta_activo">False</field>
     <field name="es_fragil">True</field>
     <field name="instrucciones_fragilidad">Manejar con guantes antiestáticos</field>
-    <!-- Campos nuevos para prototipo con revisión próxima -->
+    <!-- Vencido pero inactivo (permite fecha pasada) -->
+    <field name="fecha_fabricacion"
+      eval="(datetime.now() - timedelta(days=400)).strftime('%Y-%m-%d')" />
+    <field name="fecha_vencimiento"
+      eval="(datetime.now() - timedelta(days=100)).strftime('%Y-%m-%d')" />
+    <!-- Vencido (inactivo) -->
+    <!-- Necesita revisión (más de 6 meses desde última revisión) -->
     <field name="fecha_ultima_revision"
       eval="(datetime.now() - timedelta(days=200)).strftime('%Y-%m-%d')" />
     <field name="necesita_revision">True</field>
     <!-- Como es prototipo y no está activo, no tiene ventas -->
   </record>
+
+  <!-- Producto 7: VENCIDO E INACTIVO con motivo de rechazo -->
+  <record id="producto_demo_7" model="gestion.producto">
+    <field name="codigo">PROD-00007</field>
+    <field name="name">Cargador USB Vencido</field>
+    <field name="descripcion">Lote de cargadores USB vencidos con falla de fabricación</field>
+    <field name="estado">rechazado</field>
+    <field name="motivo_rechazo">El producto ha vencido y no cumple con los estándares de seguridad
+      eléctrica actuales.</field>
+    <field name="cantidad_stock">0</field>
+    <field name="precio_compra">5.00</field>
+    <field name="precio_venta">0.00</field>
+    <field name="peso_kg">0.080</field>
+    <field name="vida_util_meses">12</field>
+    <field name="esta_activo">False</field>
+    <!-- Vencido hace tiempo e inactivo -->
+    <field name="fecha_fabricacion"
+      eval="(datetime.now() - timedelta(days=500)).strftime('%Y-%m-%d')" />
+    <field name="fecha_vencimiento"
+      eval="(datetime.now() - timedelta(days=200)).strftime('%Y-%m-%d')" />
+    <!-- Vencido e inactivo -->
+  </record>
+
+  <!-- Producto 8: Con alerta de stock bajo -->
+  <record id="producto_demo_8" model="gestion.producto">
+    <field name="codigo">PROD-00008</field>
+    <field name="name">Batería Externa 10000mAh</field>
+    <field name="descripcion">Batería portátil para cargar dispositivos móviles</field>
+    <field name="estado">aprobado</field>
+    <field name="cantidad_stock">3</field>
+    <!-- Stock bajo (≤5) para activar alerta -->
+    <field name="precio_compra">15.00</field>
+    <field name="precio_venta">25.00</field>
+    <field name="peso_kg">0.220</field>
+    <field name="vida_util_meses">24</field>
+    <field name="esta_activo">True</field>
+    <!-- Para activar alerta_stock_bajo: stock ≤5 y recepción hace más de 30 días -->
+    <field name="fecha_hora_recepcion"
+      eval="(datetime.now() - timedelta(days=45, hours=5)).strftime('%Y-%m-%d %H:%M:%S')" />
+    <field name="fecha_hora_ultima_venta"
+      eval="(datetime.now() - timedelta(days=2, hours=1)).strftime('%Y-%m-%d %H:%M:%S')" />
+  </record>
+
+  <!-- Producto 9: Producto lejano a vencer (más de 30 días) -->
+  <record id="producto_demo_9" model="gestion.producto">
+    <field name="codigo">PROD-00009</field>
+    <field name="name">Aceite de Oliva Extra Virgen 1L</field>
+    <field name="descripcion">Aceite de oliva de primera prensada en frío</field>
+    <field name="estado">aprobado</field>
+    <field name="cantidad_stock">25</field>
+    <field name="precio_compra">8.50</field>
+    <field name="precio_venta">12.00</field>
+    <field name="peso_kg">1.1</field>
+    <field name="vida_util_meses">24</field>
+    <field name="esta_activo">True</field>
+    <!-- Producto lejano a vencer (más de 30 días) -->
+    <field name="fecha_fabricacion"
+      eval="(datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')" />
+    <field name="fecha_vencimiento"
+      eval="(datetime.now() + timedelta(days=180)).strftime('%Y-%m-%d')" />
+    <!-- NO activará esta_por_vencer (180 días > 30) -->
+    <field name="fecha_hora_recepcion"
+      eval="(datetime.now() - timedelta(days=25, hours=3)).strftime('%Y-%m-%d %H:%M:%S')" />
+    <field name="fecha_hora_ultima_venta"
+      eval="(datetime.now() - timedelta(days=7, hours=4)).strftime('%Y-%m-%d %H:%M:%S')" />
+  </record>
+
 </odoo>

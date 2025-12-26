@@ -8,27 +8,47 @@
     <field name="model">gestion.producto</field>
     <field name="arch" type="xml">
       <tree>
+        <!-- Campos básicos -->
         <field name="codigo" string="SKU" />
         <field name="name" string="Nombre" />
-        <field name="estado" string="Estado" widget="badge" decoration-info="estado=='en_revision'"
-          decoration-danger="estado=='rechazado'" decoration-success="estado=='aprobado'" />
-        <!--Indicadores
-        temporales con iconos-->
+        <field name="estado" string="Estado" widget="selection_badge" />
+
+        <!-- Campos ocultos -->
+        <field name="resumen_descripcion" invisible="1" />
+
+        <!-- Indicadores -->
+        <field name="tiene_manual" string="Manual" widget="boolean" />
+        <field name="tiene_instrucciones_montaje" string="Instrucc." widget="boolean" />
+
+        <!-- Campos temporales con decoraciones -->
         <field name="dias_para_vencer" string="Días venc." widget="progressbar"
           options="{'max_value': 365, 'editable': false}"
-          decoration-danger="dias_para_vencer &lt; 0"
-          decoration-warning="esta_por_vencer==True and dias_para_vencer &gt;=0" />
+          decoration-danger="esta_vencido"
+          decoration-warning="esta_por_vencer" />
+
+        <!-- Campos booleanos ocultos -->
         <field name="esta_por_vencer" invisible="1" />
+        <field name="esta_vencido" invisible="1" />
+
+        <!-- Fechas -->
         <field name="fecha_vencimiento" string="Vencimiento" widget="date" />
         <field name="necesita_revision" string="Revisión" widget="boolean" />
-        <field name="alerta_stock_bajo" string="Alerta Stock Bajo" widget="boolean"
+
+        <!-- Alertas -->
+        <field name="alerta_stock_bajo" string="Alerta Stock" widget="boolean"
           decoration-danger="alerta_stock_bajo" />
+
+        <!-- Información de inventario -->
         <field name="cantidad_stock" string="Cantidad en stock" />
         <field name="vida_util_meses" string="Vida útil (meses)" />
         <field name="precio_venta" string="Precio de venta" />
-        <field name="esta_activo" string="Activo" invisible="1" />
-        <field name="es_fragil" string="Es fragil" />
-        <field name="requiere_refrigeracion" string="Requiere Refrigeracion" />
+
+        <!-- Campos ocultos adicionales -->
+        <field name="esta_activo" invisible="1" />
+
+        <!-- Características -->
+        <field name="es_fragil" string="Es frágil" />
+        <field name="requiere_refrigeracion" string="Requiere Refrigeración" />
       </tree>
     </field>
   </record>
@@ -242,6 +262,92 @@
             </group>
           </group>
 
+          <separator string="Documentación y contenido" />
+          <!--Pestañas
+          para organizar mucho contenido-->
+          <notebook>
+            <page string="Descripción Comercial">
+              <group>
+                <!--Campo
+                HTML con editor WYSIWYG completo-->
+                <field name="descripcion_larga" string="Descripción Larga"
+                  widget="html"
+                  options="{'height': 300, 'placeholder': 'Escriba una descripción atractiva para los clientes...'}"
+                  nolabel="1" />
+                <!--Resumen
+                automatico (Solo lectura)-->
+                <group attrs="{'invisible': [('resumen_descripcion','=','')]}">
+                  <label for="resumen_descripcion" string="Resumen Automático" />
+                  <field name="resumen_descripcion" nolabel="1" readonly="1" />
+                  <button name="action_generar_resumen_automatico"
+                    string="Generar resumen"
+                    type="object"
+                    class="btn-secondary" />
+                </group>
+              </group>
+            </page>
+            <page string="Documentación técnica">
+              <group>
+                <!--Campo
+                text para especificaciones-->
+                <field name="especificaciones_tecnicas" string="Especificaciones" widget="textarea"
+                  placeholder="Ejemplo:&#10; • Procesador: Intel Core i7&#10; • RAM: 16gb DDR4&#10; • Almacenamiento: 512GB SSD NVMe&#10;"
+                  nolabel="1" />
+                <separator string="Manuales y Guías" />
+                <!--Manual
+                usuario con editor HTML-->
+                <field name="tiene_manual" invisible="1" />
+                <group attrs="{'invisible': [('tiene_manual','=',False)]}">
+                  <label for="manual_usuario" string="Manual de usuario" />
+                </group>
+                <field name="manual_usuario" nolabel="1"
+                  widget="html"
+                  options="{'height': 250}"
+                  placeholder="Incluya el manual de usuario completo aquí..."
+                />
+                <!--Instrucciones
+                para montaje-->
+                <field name="tiene_instrucciones_montaje" invisible="1" />
+                <group attrs="{'invisible': [('tiene_instrucciones_montaje', '=', False)]}">
+                  <label for="instrucciones_montaje" string="Instrucciones de montaje" />
+                </group>
+                <field name="instrucciones_montaje" nolabel="1"
+                  widget="html"
+                  options="{
+                  'toolbar': [['style', ['bold', 'italic', 'underline']],
+                             ['para',['ul','ol']],
+                             ['insert',['link','picture']]],
+                  'height': 200
+                  }"
+                />
+              </group>
+            </page>
+            <page string="Notas internas">
+              <group>
+                <!--Campo
+                text simple para notas internas-->
+                <field name="notas_internas" string="Notas para el equipo"
+                  widget="textarea"
+                  placeholder="Información sensible o interna para el equipo. No visible para clientes.&#10;Ej:&#10;- Proveedor alternativo: XYZ Corp&#10;- Precio negociado especial: $950&#10;- Contacto técnico: Juan Pérez ext. 234"
+                  nolabel="1" />
+                <!--Botones
+                utiles en esta seccion-->
+                <footer>
+                  <button name="action_limpiar_html"
+                    string="Limpiar html"
+                    type="object"
+                    class="btn-secondary"
+                    attrs="{'invisible': [('descripcion_larga', '=', False)]}" />
+
+                  <button name="action_exportar_texto_plano"
+                    string="Exportar Texto"
+                    type="object"
+                    class="btn-secondary" />
+                </footer>
+              </group>
+            </page>
+          </notebook>
+
           <separator string="Detalles generales" />
 
           <group>
@@ -287,6 +393,14 @@
         <filter name="refrigerados" string="Refrigerados"
           domain="[('requiere_refrigeracion', '=', True)]" />
         <filter name="con_garantia" string="Con Garantia" domain="[('tiene_garantia', '=', True)]" />
+        <!--Campos
+        textuales-->
+        <filter name="con_manual" string="Con manual"
+          domain="[('tiene_manual','=', True)]" />
+        <filter name="con_instrucciones" string="Con Instrucciones"
+          domain="[('tiene_instrucciones_montaje','=', True)]" />
+        <filter name="con_descripcion_larga" string="Con Descripción Larga"
+          domain="[('descripcion_larga','!=', False)]" />
 
         <!--Filtros
         temporales-->
@@ -299,7 +413,8 @@
         <filter name="alerta_stock" string="Con Alerta stock"
           domain="[('alerta_stock_bajo','=', True)]" />
         <filter name="recepcion_ultima_semana" string="Recibidos Última Semana"
-          domain="[('fecha_hora_recepcion','&gt;=',(context_today() - datetime.timedelta(days=7)).strftime('%%Y-%%m-%%d'))]" />
+          domain="[('fecha_hora_recepcion','&gt;=', (context_today() - 7))]" />
+
         <separator />
 
         <!--Filtros
@@ -307,6 +422,10 @@
         <filter name="filter_fecha_vencimiento" string="Vencimiento"
           date="fecha_vencimiento" />
         <filter name="filter_fecha_fabricacion" string="Fabricación" date="fecha_fabricacion" />
+        <!--Para
+        busqueda de texto-->
+        <filter name="buscar_en_texto" string="Buscar en texto" domain="[]"
+          context="{'search_default_buscar_en_texto': 1}" />
 
         <separator />
 
@@ -320,6 +439,18 @@
 
         <separator />
 
+        <!--Grupos
+        de filtros-->
+        <group string="Busqueda de contenido">
+          <filter name="buscar_nombre_descripcion" string="Nombre/Descripción"
+            domain="['|',('name','ilike','self'),('descripcion','ilike','self')]" />
+          <filter name="buscar_especificaciones" string="Especificaciones"
+            domain="[('especificaciones_tecnicas','ilike','self')]" />
+          <filter name="buscar_notas" string="Notas Internas"
+            domain="[('notas_internas','ilike','self')]" />
+        </group>
+
+        <separator />
         <!--Filtros
         combinados-->
         <filter name="activos_aprobados" string="Activos y Aprobados"
@@ -335,7 +466,8 @@
   <record id="action_producto" model="ir.actions.act_window">
     <field name="name">Productos</field>
     <field name="res_model">gestion.producto</field>
-    <field name="view_mode">tree,form</field>
+    <field name="view_mode">kanban,tree,form</field>
+    <field name="view_id" ref="view_producto_kanban" />
     <field name="search_view_id" ref="view_producto_search" />
     <field name="context">{'search_default_activos_aprobados': 1}</field>
     <field name="help" type="html">

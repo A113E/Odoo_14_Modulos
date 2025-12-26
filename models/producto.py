@@ -82,11 +82,54 @@ class Producto(models.Model):
     help='Descripción completa del producto, características, usos, etc.'
   )
 
+  # Textos largos sin formato
+  notas_internas = fields.Text(
+    string='Notas internas',
+    help='Notas para uso interno del equipo (compras, almacén, calidad). No visible para clientes.',
+    copy=False, # no se copia el valor al duplicar
+    tracking=True # trazabilidad
+  )
+
+  especificaciones_tecnicas = fields.Text(
+    string='Especificaciones Técnicas',
+    help='Especificaciones técnicas en formato plano. Ej: "CPU: Intel i7, RAM: 16GB, SSD: 512GB"',
+    copy=True # se copia el valor al duplicar
+  )
+
+  # Campos HTML (Contenido con formato)
+  descripcion_larga = fields.Html(
+    string='Descripción larga',
+    help='Descripción detallada del producto con formato HTML. Visible para clientes en catálogo.',
+    copy=True, # se copia el valor al duplicar
+    sanitize=True, # IMPORTANTE: Seguridad contra xss
+    sanitize_tags=True, # Filtra etiquetas peligrosas
+    strip_style=True, # Elimina estilos CSS potencialmente peligroso
+    strip_classes=True # Elimina la clase Css
+  )
+
+  manual_usuario = fields.Html(
+    string='Manual de usuario',
+    help='Manual de usuario en formato HTML con imágenes y formato.',
+    copy=True, # copia el valor del campo al duplicar
+    sanitize=True, # Importante
+    sanitize_attributes=True, # Filtra atributos peligrosos
+    sanitize_style=True # Filtra estilos peligrosos
+  )
+
+  instrucciones_montaje = fields.Html(
+    string='Instrucciones de montaje',
+    help='Instrucciones paso a paso para montaje/instalación.',
+    copy=True, # copia el valor al duplicar
+    sanitize=True,
+    strip_style=False, # Permitir los estilos aqui para mejorar presentación
+  )
+
   # Date
   fecha_creacion = fields.Datetime(
     string='Fecha de Creación',
     default=lambda self: fields.Datetime.now(),
-    readonly=True # No puede editarse desde el formulario
+    readonly=True, # No puede editarse desde el formulario
+    store=True
   )
 
   # Boolean
@@ -189,6 +232,12 @@ class Producto(models.Model):
     compute='_compute_esta_por_vencer'
   )
 
+  esta_vencido = fields.Boolean(
+    string="¿Está vencido?",
+    compute='_compute_esta_vencido',
+    store=True
+  )
+
   necesita_revision = fields.Boolean(
     string='¿Necesita revisión?',
     help='Indica si el producto necesita revisión de calidad',
@@ -266,10 +315,34 @@ class Producto(models.Model):
     copy=False # no copiar el valor del campo al duplicar
   )
 
+  # Depende del campo descripcion larga (HTML)
+  resumen_descripcion = fields.Text(
+    string='Resumen de la descripcion',
+    help='Resumen automático de la descripción larga (primeros 200 caracteres sin HTML)',
+    compute='_compute_resumen_descripcion',
+    store=False # no guardar, calcula al vuelo
+  )
+
+  # Depende del campo manual (HTML)
+  tiene_manual = fields.Boolean(
+    string='¿Tiene manual?',
+    help='Indica si el producto tiene manual de usuario',
+    compute='_compute_tiene_manual',
+    store=True # Guarda en la bd
+  )
+
+  # Depende del campo instrucciones (HTML)
+  tiene_instrucciones_montaje = fields.Boolean(
+    string='¿Tiene instrucciones?',
+    help='Indica si el producto tiene instrucciones de montaje',
+    compute='_compute_tiene_instrucciones',
+    store=True
+  )
+
   # Campos Dinámicos
   color_estado = fields.Integer(
     string='Color del estado',
-    compute='compute_color_estado',
+    compute='_compute_color_estado',
     store=False, # No se guarda en la BD
     help='Color para mostrar en la vista kanban'
   )
@@ -447,10 +520,14 @@ class Producto(models.Model):
     hoy = fields.Date.today()
 
     for record in self:
-      if record.fecha_vencimiento <= hoy:
-          raise ValidationError(
-            _('La fecha de vencimiento no puede ser en el pasado')
-          )
+      if record.fecha_vencimiento:
+          # PERMITIR fechas pasadas si el producto NO está activo
+          # Solo validar para productos activos
+          if record.esta_activo and record.fecha_vencimiento <= hoy:
+            raise ValidationError(
+              _('La fecha de vencimiento no puede ser en el pasado')  
+            ) 
+          
   
   # Verifica que la fecha de revision no sea en el futuro
   @api.constrains('fecha_ultima_revision')
@@ -464,6 +541,33 @@ class Producto(models.Model):
           raise ValidationError(
             _('La fecha de la última revisión no puede ser futurista')
           )
+  
+  # Validar HTML
+  # Verifica que la descripcion no sea muy larga
+  @api.constrains('descripcion_larga')
+  def _check_descripcion_larga_tamaño(self):
+    """Valida que la descripcion no sea excesivamente larga"""
+    for record in self:
+      if record.descripcion_larga and len(record.descripcion_larga) > 10000:
+        raise ValidationError(
+          _('La descripción no puede exceder de 10000 caracteres')
+        )
+  
+  # Verifica que las notas no contengan información sensible
+  @api.constrains('notas_internas')
+  def _check_notas_internas_sensibilidad(self):
+    """Verifica que las notas internas no tengan información sensible"""
+    palabras_sensibles = ['contraseña','password','confidencial','secreto','token']
+    for record in self:
+      if record.notas_internas:
+        texto_minusculas = record.notas_internas.lower()
+
+        for palabra in palabras_sensibles:
+          if palabra in texto_minusculas:
+            raise ValidationError(_(
+                        'Las notas internas no deben contener información sensible como "%s". '
+                        'Use un sistema seguro para almacenar credenciales.' % palabra
+                    ))
   
   # Computados para campos temporales
   # Calcula los dias que quedan para que venza
@@ -487,7 +591,7 @@ class Producto(models.Model):
 
     for record in self:
       if record.fecha_fabricacion:
-        delta = (record.fecha_fabricacion - hoy).days # Delta calculo y toma los dias solo
+        delta = (hoy - record.fecha_fabricacion).days # Delta calculo y toma los dias solo
         record.antiguedad_dias = delta if delta > 0 else 0
       else:
         record.antiguedad_dias = 0
@@ -498,6 +602,12 @@ class Producto(models.Model):
     """Determina si el producto esta proximo a vecer (<- 30 dias)"""
     for record in self:
       record.esta_por_vencer = (0 < record.dias_para_vencer <= 30)
+    
+  # Determinar si ya venció
+  @api.depends('dias_para_vencer')
+  def _compute_esta_vencido(self):
+        for record in self:
+          record.esta_vencido = record.dias_para_vencer < 0
 
   # Determina si necesita revisión
   @api.depends('fecha_ultima_revision', 'fecha_proxima_revision')
@@ -556,6 +666,68 @@ class Producto(models.Model):
                 record.alerta_stock_bajo = False
         else:
             record.alerta_stock_bajo = False
+  
+  # Computados para HTML/Text
+  # Resumen de la descripcion larga
+  @api.depends('descripcion_larga')
+  def _compute_resumen_descripcion(self):
+    """Crea un resumen de la descripción HTML (sin el html)"""
+    for record in self:
+      if record.descripcion_larga:
+        # Elimina el html
+        texto_plano = re.sub(r'<[^>]*>','',record.descripcion_larga)
+
+        # Limitar a 200 caracteres (cortar palabra completa)
+        if len(texto_plano) > 200:
+          # Cortar el último espacio antes del caracter 200
+          corte = texto_plano[:200].rfind(' ')
+          if corte > 150: # Asegura que no sea muy corto
+            record.resumen_descripcion = texto_plano[:corte] + '...'
+          else:
+            record.resumen_descripcion = texto_plano[:197] + '...'
+        else:
+          record.resumen_descripcion = texto_plano
+      else:
+        record.resumen_descripcion = ''
+  
+  # Determina si tiene manual de usuario
+  @api.depends('manual_usuario')
+  def _compute_tiene_manual(self):
+    """Determina si tiene manual de usuario"""
+    for record in self:
+      if record.manual_usuario:
+        # Remover etiquetas html
+        texto = re.sub(r'<[^>]*>','',record.manual_usuario).strip()
+        record.tiene_manual = bool(texto)
+      else:
+        record.tiene_manual = False
+  
+  # Determina si tiene instrucciones de montaje
+  @api.depends('instrucciones_montaje')
+  def _compute_tiene_instrucciones(self):
+    """Determina si hay instrucciones de montaje"""
+    for record in self:
+      if record.instrucciones_montaje:
+        # Elimina el html
+        texto = re.sub(r'<[^>]*>','',record.instrucciones_montaje).strip()
+        record.tiene_instrucciones_montaje = bool(texto)
+      else:
+        record.tiene_instrucciones_montaje = False
+  
+  # Métodos computados
+  @api.depends('estado')
+  def _compute_color_estado(self):
+    """Asigna un color segun el estado"""
+    colores = {
+      'borrador': 0, # Gris
+      'en_revision': 1, # Azul
+      'aprobado': 10, # Verde
+      'rechazado': 2, # Rojo
+      'archivado': 3 # Morado
+    }
+
+    for record in self:
+      record.color_estado = colores.get(record.estado, 0) # Gris por defecto
   
   # Métodos Onchange (Cambios en tiempos real)
   # Reset duracion si no tiene garantia
@@ -633,7 +805,7 @@ class Producto(models.Model):
           _('Solo productos con estado "En revisión" pueden aprobarse')
         )
       
-      if record.precio_venta <= 0:
+      if record.precio_venta < 0:
         raise ValidationError(
           _('Solo se pueden aprobar productos con precio de venta')
         )
@@ -796,6 +968,87 @@ class Producto(models.Model):
     """Calcular la rotación del inventario (VENTAS)"""
     pass # Integrar luego con Ventas
 
+  # Métodos para manipular HTML
+  # Generar resumen automático
+  def action_generar_resumen_automatico(self):
+    """Genera el resumen automatico"""
+    for record in self:
+      if record.descripcion_larga:
+        # Extraer las primeras lineas o parrafo
+        match = re.search(r'<p[^>]*>(.*?)</p>',record.descripcion_larga, re.DOTALL)
+        if match:
+          primer_parrafo = match.group(1)
+          # Limpiar html del primer parrafo
+          texto_limpio = re.sub(r'<[^>]*>','',primer_parrafo)
+
+          # Si el párrafo es muy largo- truncar
+          if len(texto_limpio) > 150:
+            texto_limpio = texto_limpio[:147] + '...'
+          record.descripcion = texto_limpio
+        else:
+          # Si no hay párrafo usar los primeros caracteres
+          texto_plano = re.sub(r'<[^>]*>','',record.descripcion_larga)
+          if len(texto_plano) > 150:
+            record.descripcion = texto_plano[:147] + '...'
+          else:
+            record.descripcion = texto_plano
+    
+    return {
+      'type': 'ir.actions.client',
+      'tag': 'display_notification',
+      'params': {
+        'title': 'Resumen generado',
+        'message': 'Resumen generado a partir de la descripción larga',
+        'type': 'success',
+        'sticky': False
+      }
+    }
+  
+  # Limpiar HTML
+  def action_limpiar_html(self):
+    """Limpia el html de estilos y clases peligrosas"""
+    for record in self:
+      if record.descripcion_larga:
+        # Odoo ya hace sanitización automática con los parámetros del campo
+        # Se puede poner logica de limpieza personalizada aqui
+        pass
+    
+    return {
+      'type': 'ir.actions.client',
+      'tag': 'display_notification',
+      'params': {
+        'title': 'HTML limpiado',
+        'message': 'Contenido HTML sanitizado',
+        'type': 'info',
+        'sticky': False
+      }
+    }
+  
+  # Exportar texto plano
+  def action_exportar_texto_plano(self):
+    """Exportar el contenido HTML como texto plano"""
+    # Esto normalmente abriría un wizard o generaría un archivo
+    # Por ahora solo demostración del concepto
+    textos = []
+    for record in self:
+      if record.descripcion_larga:
+        texto = re.sub(r'<[^>]*>','',record.descripcion_larga)
+        textos.append(f"Producto: {record.name}\n{texto}\n{'='*50}")
+    
+    # En caso real crear un archivo para descargar
+    print("\n".join(textos))
+
+    return {
+      'type': 'ir.actions.client',
+      'tag': 'display_notification',
+      'params': {
+        'title': 'Texto exportado',
+        'message': f'Se exportaron {len(textos)} productos como texto plano',
+        'type': 'success',
+        'sticky': False
+      }
+    }
+
   # Métodos para reportes y filtros
   # Obtener productos activos proximos a vencer
   def obtener_productos_por_vencer(self, dias=30):
@@ -830,19 +1083,29 @@ class Producto(models.Model):
       ('esta_activo', '=', True)
     ])
   
-  # Métodos computados
-  @api.depends('estado')
-  def _compute_color_estado(self):
-    """Asigna un color segun el estado"""
-    colores = {
-      'borrador': 0, # Gris
-      'en_revision': 1, # Azul
-      'aprobado': 10, # Verde
-      'rechazado': 2, # Rojo
-      'archivado': 3 # Morado
-    }
+  # Métodos de búsqueda
+  @api.model
+  def _search(self,args,offset=0,limit=None,order=None,count=False,access_rights_uid=None):
+    """Extender búsqueda para incluir campos de texto"""
+    # Llamar al método original
+    resultados = super(Producto, self)._search(
+      args,offset,limit,order,count=count,access_rights_uid=access_rights_uid
+    )
 
-    for record in self:
-      record.color_estado = colores.get(record.estado, 0) # Gris por defecto
+    # Se pueden buscar por palabras claves la descripcion
+    return resultados
+  
+  def buscar_en_descripcion(self,termino):
+    """Busqueda personalizada en descripciones"""
+    # En producción usar full-text search de PostgreSQL
+
+    domain = ['|','|','|',
+              ('name','ilike',termino),
+              ('descripcion','ilike',termino),
+              ('descripcion_larga','ilike',termino),
+              ('especificaciones_tecnicas','ilike',termino)]
+    return self.search(domain)
+    
+  
         
 

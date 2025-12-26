@@ -18,6 +18,8 @@
     'data': [
         'security/ir.model.access.csv',
 
+        'views/producto_kanban.xml',
+
         'views/producto_views.xml',
         'views/menu_views.xml',
 
