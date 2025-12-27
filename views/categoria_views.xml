@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!--Vista Tree (Árbol)-->
+  <record id="view_categoria_tree" model="ir.ui.view">
+    <field name="name">categoria.producto.tree</field>
+    <field name="model">categoria.producto</field>
+    <field name="arch" type="xml">
+      <tree string="Categoría de Productos">
+        <!--Icono
+        para categoria padre-hijos (Necesario para Odoo -siempre invisible)-->
+        <field name="parent_id" invisible="1" />
+        <field name="name" string="Nombre" />
+        <field name="codigo" string="Código" />
+        <!--Parent
+        visible condicional (Usa el contexto)-->
+        <field name="parent_id" string="Categoría padre"
+          invisible="context.get('parent_categories', False)" />
+        <field name="cantidad_productos" string="Productos" widget="progressbar"
+          options="{'editable': false, 'max_value': 100}" />
+        <field name="sequence" string="Orden" />
+        <field name="active" string="Activo" widget="boolean" />
+      </tree>
+    </field>
+  </record>
+
+  <!--Vista
+  Form (Formulario)-->
+  <record id="view_categoria_form" model="ir.ui.view">
+    <field name="name">categoria.producto.form</field>
+    <field name="model">categoria.producto</field>
+    <field name="arch" type="xml">
+      <form>
+        <header>
+          <!--Boton
+          para mostrar los productos-->
+          <button name="action_ver_productos"
+            string="Productos"
+            type="object"
+            class="btn-primary"
+            attrs="{'invisible': [('cantidad_productos', '=', 0)]}" />
+        </header>
+        <sheet>
+          <!--Información
+          básica-->
+          <group>
+            <group>
+              <field name="name" string="Nombre" />
+              <field name="codigo" string="Código" />
+              <field name="sequence" string="Orden" />
+              <field name="active" string="Activo" />
+            </group>
+            <group>
+              <field name="parent_id" string="Categoría Padre" />
+              <field name="cantidad_productos" string="Cantidad de productos" readonly="1" />
+            </group>
+          </group>
+          <!--Descripción-->
+          <group>
+            <field name="descripcion" string="Descripción" nolabel="1" />
+          </group>
+          <!--Subcategorías
+          (si existen)-->
+          <group attrs="{'invisible': [('child_ids','=',[])]}">
+            <div class="oe-button-box" name="button_box">
+              <h2>Subcategorias</h2>
+            </div>
+            <!--Vista
+            One2many (Embebida)-->
+            <field name="child_ids" string="Subcategorias">
+              <!--Bottom:
+              Permite crear abajo-->
+              <tree editable="bottom">
+                <field name="name" />
+                <field name="codigo" />
+                <field name="sequence" />
+                <field name="active" />
+              </tree>
+            </field>
+          </group>
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!--Vista
+  Search (Busqueda)-->
+  <record id="view_categoria_search" model="ir.ui.view">
+    <field name="name">categoria.producto.search</field>
+    <field name="model">categoria.producto</field>
+    <field name="arch" type="xml">
+      <search>
+        <!--Busquedas
+        rapidas-->
+        <field name="name" string="Nombre" />
+        <field name="codigo" string="Código" />
+        <!--Filtros
+        predefinidos-->
+        <filter name="activas" string="Activas" domain="[('active', '=', True)]" />
+        <filter name="inactivas" string="Inactivas" domain="[('active', '=', False)]" />
+        <filter name="sin_productos" string="Sin productos"
+          domain="[('cantidad_productos', '=', 0)]" />
+        <filter name="con_productos" string="Con productos"
+          domain="[('cantidad_productos', '>', 0)]" />
+        <!--Filtros
+        para jerarquia-->
+        <filter name="categorias_raiz" string="Categorías Raíz"
+          domain="[('parent_id', '=', False)]" />
+        <filter name="subcategorias" string="Subcategorías"
+          domain="[('parent_id', '!=', False)]" />
+        <!--Agrupaciones-->
+        <separator />
+        <filter name="group_parent" string="Agrupar por padre" context="{'group_by': 'parent_id'}" />
+        <filter name="group_active" string="Agrupar por estado" context="{'group_by': 'active'}" />
+      </search>
+    </field>
+  </record>
+
+  <!--Accion
+  ventana-->
+  <record id="action_categoria" model="ir.actions.act_window">
+    <field name="name">Categorías de Productos</field>
+    <field name="res_model">categoria.producto</field>
+    <field name="view_mode">tree,form</field>
+    <field name="search_view_id" ref="view_categoria_search" />
+    <field name="help" type="html">
+      <p class="o_view_nocontent_smiling_face">
+        No hay categorías creadas aun.
+      </p>
+      <p>
+        Las categorias le ayudan a organizar los productos jerarquicamente.
+      </p>
+    </field>
+  </record>
+
+</odoo>

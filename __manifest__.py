@@ -1,6 +1,6 @@
 {
     'name': "Gestión de Productos Básica",
-    'version': '14.0.1.0.0',
+    'version': '14.0.2.0.0',
     'author': "A113E",
     'website': "",
     'category': 'Inventory',
@@ -10,7 +10,7 @@
         Incluye:
         - Información básica de productos
         - Control de precios y existencias
-        - Categorización simple
+        - Categorización jerarquica
         
         Desarrollado por Alberto Mártir González.
     """,
@@ -20,6 +20,7 @@
 
         'views/producto_kanban.xml',
 
+        'views/categoria_views.xml',
         'views/producto_views.xml',
         'views/menu_views.xml',
 

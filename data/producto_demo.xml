@@ -4,12 +4,52 @@
 from datetime import datetime, timedelta
 now = datetime.now()?>
 
+  <!-- Categorias a relacionar -->
+  <record id="categoria_electronica" model="categoria.producto">
+    <field name="name">Electrónica</field>
+    <field name="codigo">CAT-001</field>
+    <field name="descripcion">Productos electrónicos y tecnológicos</field>
+    <field name="sequence">10</field>
+  </record>
+
+  <record id="categoria_computadoras" model="categoria.producto">
+    <field name="name">Computadoras</field>
+    <field name="codigo">CAT-002</field>
+    <field name="parent_id" ref="categoria_electronica" />
+    <field name="descripcion">Computadoras, laptops y tablets</field>
+    <field name="sequence">20</field>
+  </record>
+
+  <record id="categoria_perifericos" model="categoria.producto">
+    <field name="name">Periféricos</field>
+    <field name="codigo">CAT-003</field>
+    <field name="parent_id" ref="categoria_electronica" />
+    <field name="descripcion">Teclados, mouses, monitores, etc.</field>
+    <field name="sequence">30</field>
+  </record>
+
+  <record id="categoria_alimentos" model="categoria.producto">
+    <field name="name">Alimentos</field>
+    <field name="codigo">CAT-004</field>
+    <field name="descripcion">Productos alimenticios y bebidas</field>
+    <field name="sequence">40</field>
+  </record>
+
+  <record id="categoria_lacteos" model="categoria.producto">
+    <field name="name">Lácteos</field>
+    <field name="codigo">CAT-005</field>
+    <field name="parent_id" ref="categoria_alimentos" />
+    <field name="descripcion">Leche, yogur, queso, etc.</field>
+    <field name="sequence">50</field>
+  </record>
+
   <!-- Producto 1: Aprobado, no perecedero, sin vencimiento -->
   <record id="producto_demo_1" model="gestion.producto">
     <field name="codigo">PROD-00001</field>
     <field name="name">Laptop Dell XPS 13</field>
     <field name="descripcion">Laptop ultrabook de 13 pulgadas, 16GB RAM, 512GB SSD</field>
     <field name="estado">aprobado</field>
+    <field name="categoria_id" ref="categoria_computadoras" />
     <field name="descripcion_larga"><![CDATA[
     <h2>Laptop Dell XPS 13 - Potencia y Elegancia</h2>
     <p>La <strong>Dell XPS 13</strong> redefine lo que es posible en una laptop de 13 pulgadas. Con un diseño infinitamente elegante y potencia de sobra para cualquier tarea.</p>
@@ -85,6 +125,7 @@ now = datetime.now()?>
     <field name="name">Mouse Inalámbrico Logitech</field>
     <field name="descripcion">Mouse ergonómico inalámbrico, batería de 12 meses</field>
     <field name="estado">aprobado</field>
+    <field name="categoria_id" ref="categoria_perifericos" />
     <field name="cantidad_stock">50</field>
     <field name="precio_compra">25.00</field>
     <field name="precio_venta">40.00</field>
@@ -110,6 +151,7 @@ now = datetime.now()?>
     <field name="name">Teclado Mecánico Redragon</field>
     <field name="descripcion">Teclado mecánico gaming con retroiluminación RGB</field>
     <field name="estado">en_revision</field>
+    <field name="categoria_id" ref="categoria_perifericos" />
     <field name="cantidad_stock">15</field>
     <field name="precio_compra">60.00</field>
     <field name="precio_venta">90.00</field>
@@ -136,6 +178,7 @@ now = datetime.now()?>
     <field name="name">Yogur Natural 1kg</field>
     <field name="descripcion">Yogur natural sin azúcar, envase de 1kg</field>
     <field name="estado">aprobado</field>
+    <field name="categoria_id" ref="categoria_lacteos" />
     <field name="cantidad_stock">100</field>
     <field name="precio_compra">3.50</field>
     <field name="precio_venta">5.00</field>
@@ -162,6 +205,7 @@ now = datetime.now()?>
     <field name="name">Leche Entera 1L</field>
     <field name="descripcion">Leche entera pasteurizada, envase tetra pack 1 litro</field>
     <field name="estado">aprobado</field>
+    <field name="categoria_id" ref="categoria_lacteos" />
     <field name="cantidad_stock">30</field>
     <field name="precio_compra">1.20</field>
     <field name="precio_venta">1.80</field>
@@ -189,6 +233,7 @@ now = datetime.now()?>
     <field name="name">Prototipo de Smartwatch Vencido</field>
     <field name="descripcion">Prototipo vencido en desarrollo, no disponible para venta</field>
     <field name="estado">borrador</field>
+    <field name="categoria_id" ref="categoria_electronica" />
     <field name="cantidad_stock">2</field>
     <field name="precio_compra">200.00</field>
     <field name="precio_venta">0.00</field>
@@ -219,6 +264,7 @@ now = datetime.now()?>
     <field name="estado">rechazado</field>
     <field name="motivo_rechazo">El producto ha vencido y no cumple con los estándares de seguridad
       eléctrica actuales.</field>
+    <field name="categoria_id" ref="categoria_electronica" />
     <field name="cantidad_stock">0</field>
     <field name="precio_compra">5.00</field>
     <field name="precio_venta">0.00</field>
@@ -239,6 +285,7 @@ now = datetime.now()?>
     <field name="name">Batería Externa 10000mAh</field>
     <field name="descripcion">Batería portátil para cargar dispositivos móviles</field>
     <field name="estado">aprobado</field>
+    <field name="categoria_id" ref="categoria_electronica" />
     <field name="cantidad_stock">3</field>
     <!-- Stock bajo (≤5) para activar alerta -->
     <field name="precio_compra">15.00</field>
@@ -259,6 +306,7 @@ now = datetime.now()?>
     <field name="name">Aceite de Oliva Extra Virgen 1L</field>
     <field name="descripcion">Aceite de oliva de primera prensada en frío</field>
     <field name="estado">aprobado</field>
+    <field name="categoria_id" ref="categoria_alimentos" />
     <field name="cantidad_stock">25</field>
     <field name="precio_compra">8.50</field>
     <field name="precio_venta">12.00</field>

@@ -339,6 +339,19 @@ class Producto(models.Model):
     store=True
   )
 
+  # Campos relacionales (Entre modelos)
+  # Este campo se conectará automáticamente con el One2many en categoria
+  categoria_id = fields.Many2one(
+    'categoria.producto',
+    string='Categoria',
+    help='Categoria principal del producto',
+    index=True, # Busqueda rapida
+    tracking=True, # Seguimiento de cambios
+    ondelete='restrict', # No permite eliminar categoria si no tiene productos
+    domain="[('active','=',True)]", # Solo mostrar categorias activas
+    context="{'default_active': True}" # Contexto por defecto al crear
+  )
+
   # Campos Dinámicos
   color_estado = fields.Integer(
     string='Color del estado',

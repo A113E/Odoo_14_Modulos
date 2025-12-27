@@ -1,12 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-  <!--Menu principal-->
+  <!--Menu principal (Productos)-->
   <menuitem
     id="menu_gestion_productos_root"
     name="Gestión de Productos"
     sequence="100"
     web_icon="gestion_productos,static/description/icon.png" />
+
+  <!--Menu
+  Categorias-->
+  <menuitem
+    id="menu_categorias"
+    name="Categorias"
+    parent="menu_gestion_productos_root"
+    action="action_categoria"
+    sequence="5" />
 
   <!--Submenu-->
   <menuitem
