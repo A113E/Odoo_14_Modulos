@@ -18,3 +18,18 @@ python odoo-bin -c odoo.conf -d dev_db --dev=xml -u desoft_prueba // Iniciar act
 4-Modelos
 Instalar modulo contactos : contacts en Odoo interfaz
 Crear carpeta Models
+5-Vistas inherits
+Nombre tecnico recomendado id: view_partner_form_inherit_desoft
+<xpath expr="//field[@name='vat']" position="after">: Esta linea busca en cualquier parte un campo con nombre vat e inserta el nuevo después de el
+Posiciones:
+Posición Qué hace
+after Inserta después
+before Inserta antes
+inside Inserta dentro
+replace Reemplaza
+attributes Modifica atributos
+Ejemplos válidos de expresiones:
+//group
+//page[@string='Sales']
+//field[@name='name']
+//notebook/page[1]

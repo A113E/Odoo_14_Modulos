@@ -7,7 +7,17 @@
     'category': 'Tools',
     'author': 'A113E',
     'depends': ['base'],  # Dependencia básica
-    'data': [],  # Archivos XML a cargar
+    'data': [
+      # Seguridad primero
+
+      # Vistas
+      # Kanbam primero
+
+      # Vistas regulares
+      'views/partner_views.xml'
+
+      # Demo
+    ],  # Archivos XML a cargar
     'installable': True,
     'auto_install': False,
 }
