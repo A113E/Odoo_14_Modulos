@@ -15,3 +15,6 @@ Crear archivo **manifest**.py y **init**.py
 venv\Scripts\activate
 python odoo-bin -c odoo.conf -d dev_db --dev=xml -u all // Iniciar actualizando todos los modulos
 python odoo-bin -c odoo.conf -d dev_db --dev=xml -u desoft_prueba // Iniciar actualizando solo un modulo
+4-Modelos
+Instalar modulo contactos : contacts en Odoo interfaz
+Crear carpeta Models
