@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!--Vista Tree-->
+  <record id="view_project_tree" model="ir.ui.view">
+    <field name="name">project.project.tree</field>
+    <field name="model">project.project</field>
+    <field name="arch" type="xml">
+      <tree string="Project">
+        <field name="name" string="Project name" />
+        <field name="start_date" string="Start Date" widget="date" />
+        <field name="end_date" string="End Date" widget="date" />
+        <field name="state" string="State" widget="selection_badge" />
+        <field name="budget" string="Budget" />
+        <field name="actual_cost" string="Actual Cost" />
+        <field name="remaining_budget" string="Remaining Budget" readonly="1" />
+        <field name="is_late" string="Late" readonly="1" />
+        <field name="customer_id" string="Customer" />
+      </tree>
+    </field>
+  </record>
+
+  <!--Vista
+  Form-->
+  <record id="view_project_form" model="ir.ui.view">
+    <field name="name">project.project.form</field>
+    <field name="model">project.project</field>
+    <field name="arch" type="xml">
+      <form string="Project Form">
+        <sheet>
+          <group>
+            <group>
+              <field name="name" string="Project name" />
+              <field name="customer_id" string="Customer" />
+            </group>
+            <group>
+              <field name="state" string="State" options="{'no_create': True}" widget="selection" />
+            </group>
+          </group>
+          <separator string="Project time" />
+          <group>
+            <group>
+              <field name="start_date" string="Start date"
+                options="{'format': 'dd/MM/yyyy', 'placeholder': 'DD/MM/AAAA'}" widget="date" />
+              <field name="end_date" string="End date"
+                options="{'format': 'dd/MM/yyyy', 'placeholder': 'DD/MM/AAAA'}" widget="date" />
+            </group>
+            <group>
+              <field name="is_late" string="Late" readonly="1" widget="boolean" />
+            </group>
+          </group>
+          <separator string="Project budget" />
+          <group>
+            <group>
+              <field name="budget" string="Budget" />
+              <field name="actual_cost" string="Actual Cost" />
+            </group>
+            <group>
+              <field name="remaining_budget" string="Remaining Budget" readonly="1" />
+            </group>
+          </group>
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!--Acción-->
+  <record id="action_project" model="ir.actions.act_window">
+    <field name="name">Project</field>
+    <field name="res_model">project.project</field>
+    <field name="view_mode">tree,form</field>
+    <field name="help" type="html">
+      <p class="o_view_nocontent_smiling_face">
+        No projects yet. Create one!
+      </p>
+    </field>
+  </record>
+
+</odoo>

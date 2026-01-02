@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!--Vista Tree-->
+  <record id="view_task_tree" model="ir.ui.view">
+    <field name="name">project.task.tree</field>
+    <field name="model">project.task</field>
+    <field name="arch" type="xml">
+      <tree string="Task">
+        <field name="name" string="Task Name" />
+        <field name="estimated_hours" string="Estimated hours" />
+        <field name="actual_hours" string="Actual Hours" />
+        <field name="hour_difference" string="Hour Difference" readonly="1" />
+        <field name="project_id" string="Project" />
+        <field name="user_id" string="Assigned to" />
+      </tree>
+    </field>
+  </record>
+
+  <!--Vista
+  Form-->
+  <record id="view_task_form" model="ir.ui.view">
+    <field name="name">project.task.form</field>
+    <field name="model">project.task</field>
+    <field name="arch" type="xml">
+      <form string="Task Form">
+        <sheet>
+          <group>
+            <group>
+              <field name="name" />
+              <field name="project_id" />
+              <field name="user_id" />
+            </group>
+
+            <group>
+              <field name="estimated_hours" />
+              <field name="actual_hours" />
+              <field name="hour_difference" readonly="1" />
+            </group>
+          </group>
+          <separator string="Description" />
+          <group>
+            <field name="description" nolabel="1" />
+          </group>
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!--Acción-->
+  <record id="action_task" model="ir.actions.act_window">
+    <field name="name">Task</field>
+    <field name="res_model">project.task</field>
+    <field name="view_mode">tree,form</field>
+    <field name="help" type="html">
+      <p class="o_view_nocontent_smiling_face">
+        No tasks yet. Create one!
+      </p>
+    </field>
+  </record>
+
+</odoo>
