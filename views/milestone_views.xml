@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!--Vista Tree-->
+  <record id="view_milestone_tree" model="ir.ui.view">
+    <field name="name">project.milestone.tree</field>
+    <field name="model">project.milestone</field>
+    <field name="arch" type="xml">
+      <tree string="Milestone">
+        <field name="name" string="Milestone name" />
+        <field name="state" string="State" widget="selection_badge" />
+        <field name="is_critical" string="Critical" widget="boolean_button" />
+        <field name="estimated_date" string="Estimated Date" widget="date" />
+      </tree>
+    </field>
+  </record>
+
+  <!--Vista
+  Form-->
+  <record id="view_milestone_form" model="ir.ui.view">
+    <field name="name">project.milestone.form</field>
+    <field name="model">project.milestone</field>
+    <field name="arch" type="xml">
+      <form string="Milestone Form">
+        <sheet>
+          <group>
+            <group>
+              <field name="name" string="Milestone name" />
+            </group>
+            <group>
+              <field name="state" string="State" options="{'no_create': True}" widget="selection" />
+              <field name="is_critical" string="Critical" widget="boolean_button" />
+            </group>
+            <group>
+              <field name="estimated_date" string="Estimated Date" widget="date"
+                options="{'format': 'dd/MM/yyyy', 'placeholder': 'DD/MM/AAAA'}" />
+            </group>
+          </group>
+          <group>
+            <group>
+              <field name="comentarys" string="Comentarys" nolabel="1" />
+            </group>
+          </group>
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!--Acción-->
+  <record id="action_milestone" model="ir.actions.act_window">
+    <field name="name">Milestone</field>
+    <field name="res_model">project.milestone</field>
+    <field name="view_mode">tree,form</field>
+    <field name="help" type="html">
+      <p class="o_view_nocontent_smiling_face">
+        No Milestones yet. Create one!
+      </p>
+    </field>
+  </record>
+
+</odoo>

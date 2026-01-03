@@ -17,5 +17,12 @@
       parent="menu_project_root"
       action="action_task"
       sequence="20" />
+
+    <!-- Milestone submenu -->
+    <menuitem id="menu_project_milestone"
+      name="Milestones"
+      parent="menu_project_root"
+      action="action_milestone"
+      sequence="30" />
   </data>
 </odoo>
